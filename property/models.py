@@ -1,7 +1,11 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from property.flat_codes import flat_codes
+from accounts.models import PortalUser
+
+from random import randint
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -41,6 +45,8 @@ class Flat(models.Model):
 
 
 
+
+pin_generator='SE'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
 tenancy = (('Tenant', 'Tenant'),('Owner', 'Owner'), ('Other', 'Other'))
 
 class Tenant(models.Model):
@@ -54,13 +60,29 @@ class Tenant(models.Model):
     stay_length   = models.CharField(max_length=20, null=True, blank=False)
     pet_licence   = models.CharField(max_length=20, null=True, blank=False)
     additional_notes= models.TextField(max_length=300, blank=True)
+    date_moved_in = models.DateField(auto_now_add=False, null=True, blank=True)
     date_added    = models.DateField(auto_now_add=True, null=True)
     moved_out     = models.BooleanField(default=False)
-    date_moved_out= models.DateField(auto_now_add=False, null=True)
+    date_moved_out= models.DateField(auto_now_add=False, null=True, blank=True)
+    pin_code      = models.CharField(max_length=6, blank=True, editable=False, default=pin_generator)
+    portal_user   = models.OneToOneField(PortalUser, related_name='tenant', on_delete=models.SET_NULL, null=True, blank=True, default=None)
 
+    
     class Meta:
         unique_together = ('name', 'surname',)
 
+    def create_user(self):
+        if not self.portal_user:
+            user = PortalUser.objects.create(
+                name=self.name,
+                surname=self.surname,
+                email=self.email,
+                phone_number=self.phone_number,
+                flat=self.flat.flat_number,
+                )
+            self.portal_user = user
+            self.save()
+     
 
     def __str__(self):
         return f'{self.name} {self.surname}' 
@@ -95,8 +117,11 @@ class Concierge(models.Model):
 
     name            = models.CharField(max_length=15, null=True, blank=False, unique=True)
     surname         = models.CharField(max_length=15, null=True, blank=True)
+    email           = models.EmailField(max_length=50, unique=True, null=True, blank=True)
     work_pattern    = models.CharField(max_length=6, choices=work_choices, null=True, blank=False)
     phone_number    = models.CharField(max_length=20, null=True, blank=True, unique=True)
+
+    
 
     def __str__(self):
         return self.name

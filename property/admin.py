@@ -28,6 +28,7 @@ class FlatAdmin(admin.ModelAdmin):
     list_display_links = ('flat_number', 'building', 'core')
     
     ordering = ('flat_number',)
+    search_fields = ['flat_number']
 
     filter_horizontal = ()
     list_filter = ('building','core', 'floor', 'flat_type')
@@ -35,8 +36,10 @@ class FlatAdmin(admin.ModelAdmin):
 
 
 class TenantAdmin(admin.ModelAdmin):
-    list_display = ('name', 'surname', 'flat', 'status', 'date_added','date_moved_in','moved_out', 'pin_code')
-
+    list_display = ('surname', 'name', 'flat', 'status', 'date_added','date_moved_in','moved_out', 'pin_code')
+    #readonly_fields = ('flat', 'date_added')
+    search_fields = ['surname']
+    ordering = ('surname',)
 
 
 class ConciergeAdmin(admin.ModelAdmin):

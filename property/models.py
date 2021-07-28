@@ -84,6 +84,16 @@ class Tenant(models.Model):
             self.save()
      
 
+    def save(self, *args, **kwargs):
+        if self.portal_user:
+             self.portal_user.name = self.name
+             self.portal_user.surname = self.surname
+             self.portal_user.phone_number = self.phone_number
+             flat_to_string = str(self.portal_user.flat)
+             flat_to_string = self.flat
+             self.portal_user.save()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.name} {self.surname}' 
 

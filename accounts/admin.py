@@ -5,7 +5,7 @@ from .models import PortalUser
 
 
 class AccountAdmin(UserAdmin):
-    list_display = ('email', 'name', 'flat', 'last_login')
+    list_display = ('email', 'surname', 'flat', 'last_login')
     add_fieldsets = (
         (None, {
             'classes': ('wide',),

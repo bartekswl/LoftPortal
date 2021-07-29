@@ -1,22 +1,23 @@
 from django.db import models
 from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.shortcuts import get_object_or_404
 
 from property.flat_codes import flat_codes
 from accounts.models import PortalUser
 
 from random import randint
 
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
+# from django.core.exceptions import ValidationError
+# from django.utils.translation import gettext_lazy as _
 
 #validators=[validate_even]
 # def validate_even(value):
 #     if value != 'Cassia':
-#         raise ValidationError(
-#             _('%(value)s is not an even number'),
-#             params={'value': value},
-#         )
+        # raise ValidationError(
+        #     _('%(value)s is not an even number'),
+        #     params={'value': value},
+        # )
 
 
 building_codes = (('Cassia', 'Cassia'),('Rosewood', 'Rosewood'))
@@ -38,7 +39,13 @@ class Flat(models.Model):
     is_empty       = models.BooleanField(default=False)
     
     
+
+    def get_tenants(self):
+        flat_tenants = Tenant.objects.filter(flat=self)
+        how_many = flat_tenants.count()
+        return flat_tenants
     
+
     def __str__(self):
         return self.flat_number
 
@@ -46,7 +53,7 @@ class Flat(models.Model):
 
 
 
-pin_generator='SE'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
+pin_generator='se'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
 tenancy = (('Tenant', 'Tenant'),('Owner', 'Owner'), ('Other', 'Other'))
 
 class Tenant(models.Model):
@@ -64,7 +71,7 @@ class Tenant(models.Model):
     date_added    = models.DateField(auto_now_add=True, null=True)
     moved_out     = models.BooleanField(default=False)
     date_moved_out= models.DateField(auto_now_add=False, null=True, blank=True)
-    pin_code      = models.CharField(max_length=6, blank=True, editable=False, default=pin_generator)
+    pin_code      = models.CharField(max_length=6, blank=True, default=pin_generator, editable=False)
     portal_user   = models.OneToOneField(PortalUser, related_name='tenant', on_delete=models.SET_NULL, null=True, blank=True, default=None)
 
     
@@ -76,7 +83,7 @@ class Tenant(models.Model):
             user = PortalUser.objects.create(
                 name=self.name,
                 surname=self.surname,
-                email=self.email,
+                email=self.normalize_email(email),
                 phone_number=self.phone_number,
                 flat=self.flat.flat_number,
                 )

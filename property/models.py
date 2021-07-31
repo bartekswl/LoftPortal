@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 
 from property.flat_codes import flat_codes
@@ -9,7 +11,6 @@ from accounts.models import PortalUser
 from random import randint
 
 # from django.core.exceptions import ValidationError
-# from django.utils.translation import gettext_lazy as _
 
 #validators=[validate_even]
 # def validate_even(value):
@@ -41,9 +42,15 @@ class Flat(models.Model):
     
 
     def get_tenants(self):
-        flat_tenants = Tenant.objects.filter(flat=self)
+        flat_tenants = Tenant.objects.filter(flat=self, moved_out=False)
         how_many = flat_tenants.count()
-        return flat_tenants
+        return [flat_tenants, how_many]
+
+    # def numof_tenants(self):
+    #     flat_tenants = Tenant.objects.filter(flat=self)
+    #     how_many = flat_tenants.count()
+    #     return flat_tenants
+    
     
 
     def __str__(self):
@@ -78,12 +85,23 @@ class Tenant(models.Model):
     class Meta:
         unique_together = ('name', 'surname',)
 
+    def clean(self):
+        if not self.pk:
+            if Flat.get_tenants(self.flat)[1] >= 6:
+                print(Flat.get_tenants(self.flat)[1])
+                raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
+        elif Flat.get_tenants(self.flat)[1] > 6:
+            raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
+        else:
+            
+            pass
+
     def create_user(self):
         if not self.portal_user:
-            user = PortalUser.objects.create(
+            user = PortalUser.objects.create_user(
                 name=self.name,
                 surname=self.surname,
-                email=self.normalize_email(email),
+                email=self.email,
                 phone_number=self.phone_number,
                 flat=self.flat.flat_number,
                 )
@@ -96,8 +114,8 @@ class Tenant(models.Model):
              self.portal_user.name = self.name
              self.portal_user.surname = self.surname
              self.portal_user.phone_number = self.phone_number
-             flat_to_string = str(self.portal_user.flat)
-             flat_to_string = self.flat
+             flat_to_string = str(self.flat)
+             self.portal_user.flat = flat_to_string
              self.portal_user.save()
         super().save(*args, **kwargs)
 

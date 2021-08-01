@@ -1,9 +1,12 @@
 from django.db import models
+from model_utils import FieldTracker
 from django.db.models import UniqueConstraint
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
+
+from django.contrib import messages
 
 from property.flat_codes import flat_codes
 from accounts.models import PortalUser
@@ -40,6 +43,11 @@ class Flat(models.Model):
     is_empty       = models.BooleanField(default=False)
     
     
+    
+    
+    def clean(self):
+        if self.flat_number.startswith('C') and self.building != 'Cassia':
+            raise ValidationError(_('Flats starting with C can only belong to Cassia Building'))
 
     def get_tenants(self):
         flat_tenants = Tenant.objects.filter(flat=self, moved_out=False)
@@ -80,8 +88,12 @@ class Tenant(models.Model):
     date_moved_out= models.DateField(auto_now_add=False, null=True, blank=True)
     pin_code      = models.CharField(max_length=6, blank=True, default=pin_generator, editable=False)
     portal_user   = models.OneToOneField(PortalUser, related_name='tenant', on_delete=models.SET_NULL, null=True, blank=True, default=None)
-
+    tracker_agent = FieldTracker(fields=['flat', 'moved_out'])
     
+
+
+
+
     class Meta:
         unique_together = ('name', 'surname',)
 
@@ -93,9 +105,11 @@ class Tenant(models.Model):
         elif Flat.get_tenants(self.flat)[1] > 6:
             raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
         else:
+            if self.tracker_agent.has_changed('flat') or self.tracker_agent.has_changed('moved_out'):
+                if Flat.get_tenants(self.flat)[1] >= 6:
+                    raise ValidationError(_('Maximum flat occupancy is 6.'))
             
-            pass
-
+   
     def create_user(self):
         if not self.portal_user:
             user = PortalUser.objects.create_user(
@@ -110,6 +124,7 @@ class Tenant(models.Model):
      
 
     def save(self, *args, **kwargs):
+       
         if self.portal_user:
              self.portal_user.name = self.name
              self.portal_user.surname = self.surname

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import GymBooking, GymBookingBlock
+from .models import GymBooking, GymBookingBlock, CinemaBooking, CinemaBookingBlock
 from property.models import Flat, Tenant
 
 
@@ -24,6 +24,17 @@ class GymBookingAdmin(admin.ModelAdmin):
 class GymBookingBlockAdmin(admin.ModelAdmin):
     list_display = ('date', 'all_day', 'time', 'duration', 'block_by' )
 
+
+class CinemaBookingAdmin(admin.ModelAdmin):
+    list_display = ('date', 'time', 'flat', 'tenant', 'duration', 'made_by' )
+
+
+class CinemaBookingBlockAdmin(admin.ModelAdmin):
+    list_display = ('date', 'made_by')
+
+
 admin.site.register(GymBooking, GymBookingAdmin)
 admin.site.register(GymBookingBlock, GymBookingBlockAdmin)
+admin.site.register(CinemaBooking, CinemaBookingAdmin)
+admin.site.register(CinemaBookingBlock, CinemaBookingBlockAdmin)
 

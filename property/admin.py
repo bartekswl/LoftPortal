@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Flat, Tenant, CommercialUnit, Concierge
+from django.contrib import messages
 
 
 
@@ -39,7 +40,7 @@ class TenantAdmin(admin.ModelAdmin):
     list_display = ('surname', 'name', 'flat', 'status', 'date_added','date_moved_in','moved_out', 'pin_code')
     #readonly_fields = ('flat', 'date_added')
     search_fields = ['surname']
-    ordering = ('surname',)
+    ordering = ('flat',)
 
 
 class ConciergeAdmin(admin.ModelAdmin):
@@ -62,6 +63,10 @@ class ConciergeAdmin(admin.ModelAdmin):
                 return True
             else:
                 return False
+
+    def save_model(self, request, obj, form, change):
+        messages.add_message(request, messages.INFO, 'Car has been sold')
+        super(CarAdmin, self).save_model(request, obj, form, change)
 
     #list_display = ('name', 'surname', 'work_pattern', 'phone_number')
 

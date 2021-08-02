@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from property.models import Tenant, Flat
 from accounts.models import PortalUser
-from booking.models import CinemaBookingBlock
+from booking.models import CinemaBookingBlock, GymBookingBlock
 
 
 
@@ -14,5 +14,7 @@ def home(request):
     # print(b[1])
     # a = get_object_or_404(Tenant, pk=11)
     # PortalUser.objects.create_admin('Benek','gruby@op.pl')
-    CinemaBookingBlock.add_many(7, '2021-08-20')
+    CinemaBookingBlock.add_many(7, '2021-08-05')
+
+    
     return render(request, 'home.html')

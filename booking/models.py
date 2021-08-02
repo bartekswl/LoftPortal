@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from datetime import datetime
-from datetime import timedelta
-import datetime 
+
+from datetime import datetime, timedelta, date
+
 from property.models import Flat, Tenant, Concierge
 
 from django.core.exceptions import ValidationError
@@ -20,7 +20,7 @@ gym_time_slots = (('6', '6'),('7', '7'), ('8', '8'), ('9', '9'),('xxx', 'xxx'), 
     ('19', '19'),('20', '20'), ('21', '21'))
 
 def validate_date(date):
-    if date < datetime.datetime.now().date():
+    if date < datetime.now().date():
         raise ValidationError("Date cannot be in the past")
 
 
@@ -41,7 +41,8 @@ class GymBooking(models.Model):
   
     
     def clean(self):
-        
+        if self.date > date.today() + timedelta(days=7):
+            raise ValidationError(_('You can make a booking maximum 7 days in advance'))
         check_flat = Flat.get_tenants(self.flat)[0]
         if self.time == 'xxx': # Cleaning slot chosen- not available
             raise ValidationError(_('Time slot not available- cleaning'))
@@ -65,6 +66,7 @@ class GymBooking(models.Model):
                 if isinstance(self, GymBookingBlock):
                     if self.all_day == True:
                         raise ValidationError(_('Block already made for this day. Remove other blocks to add all day block'))
+                        
 
                 all_blocks = GymBookingBlock.objects.filter(date=self.date)
                 loop_outcome = []
@@ -112,16 +114,23 @@ class GymBooking(models.Model):
                 raise ValidationError(_('This booking already exists'))
             if GymBooking.objects.filter(date=self.date, tenant=self.tenant):
                 raise ValidationError(_('This resident already booked a slot that day.'))
+            
             for booking in existing_bookings:
                 slot_pax.append(booking.pax)
-        
             if numof_bookings >= 6:
                 return True
             if sum(slot_pax) + self.pax > 6:
                 return True
 
         else:
-            
+            if GymBooking.objects.filter(date=self.date, time=self.time, tenant=self.tenant):
+                if GymBooking.objects.exclude(pk=self.pk).filter(date=self.date, time=self.time, tenant=self.tenant).count() +1 > 1:
+                    raise ValidationError(_('This booking already exists'))
+            if GymBooking.objects.exclude(pk=self.pk).filter(date=self.date, tenant=self.tenant):
+                if GymBooking.objects.filter(date=self.date, tenant=self.tenant).count() +1 > 1:
+                    raise ValidationError(_('This resident has already booked a slot that day.'))
+
+
             for booking in existing_bookings:
                 if booking.pk == self.pk:
                     pass
@@ -132,7 +141,9 @@ class GymBooking(models.Model):
                 return True
 
         
-
+    # def save(self, *args, **kwargs):
+    #     self.clean()
+    #     return super().save(*args, **kwargs)
       
         
      
@@ -162,6 +173,7 @@ class GymBookingBlock(models.Model):
 
 
     def clean(self):
+       
         if self.all_day == True:
             if self.time != None or self.duration != None:
                 raise ValidationError(_("Don't input time or duration for all day block."))
@@ -172,15 +184,19 @@ class GymBookingBlock(models.Model):
             if int(self.time) + int(self.duration) > 22:
                 raise ValidationError(_("Block can last only until 22:00"))
         if GymBooking.check_blocks(self):
-            raise ValidationError(_("Block already exists"))
+            raise ValidationError(_("Block already exists"), code='2')
+            
+            
         if self.check_bookings():
-            print('Mamy problem')
+            print('Mamy problem- email')
 
 
 
     def check_bookings(self):
+     
         if GymBooking.objects.filter(date=self.date).exists():
             if self.all_day == True:
+                
                 for booking in GymBooking.objects.filter(date=self.date):
                     booking.delete() #or/and send email
                 return True
@@ -218,6 +234,15 @@ class GymBookingBlock(models.Model):
                 return False
 
 
+    def add_many(how_many, date):  # Adds more objects at the same time- in case of longer block
+        date_used = datetime.strptime(date, '%Y-%m-%d')
+        for i in range(how_many):
+            GymBookingBlock.objects.create(date=date_used, all_day=True, block_by=Concierge.objects.get(name='Bart')) # Will be changed once forms and views are ready
+            date_used += timedelta(days=1)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.date)
@@ -246,13 +271,80 @@ class CinemaBooking(models.Model):
 
 
     def clean(self):
+        if self.date > date.today() + timedelta(days=7):
+            raise ValidationError(_('You can make a booking 7 days in advance'))
         check_flat = Flat.get_tenants(self.flat)[0]
         if not self.tenant in check_flat: 
             raise ValidationError(_('Flat number does not match tenant name.'))
         if CinemaBookingBlock.objects.filter(date=self.date).exists():
             raise ValidationError(_("Slot blocked by admin. Contact Concierge Desk"))
-        if CinemaBooking.objects.filter(date=self.date, time=self.time, tenant=self.tenant):
+        if self.bookings_number():
+            raise ValidationError(_("You trying edit into existing slot"))
+        if self.existing_bookings():
             raise ValidationError(_("Booking already exists"))
+        if self.check_avail():
+            print('Confirmed')
+        
+        
+
+
+  
+    def existing_bookings(self):       # Checks if booking already exists + prevents 2 bookings a day
+        if not self.pk: 
+            if CinemaBooking.objects.filter(date=self.date, time=self.time, tenant=self.tenant):
+                raise ValidationError(_("Booking already exists"))
+            if CinemaBooking.objects.filter(date=self.date, time=self.time, flat=self.flat):
+                raise ValidationError(_("Different tenant of this flat already booked this slot")) 
+            if CinemaBooking.objects.filter(date=self.date, flat=self.flat):
+                raise ValidationError(_("This flat has booked cinema that day")) #or warning 
+        else:
+            if CinemaBooking.objects.exclude(pk=self.pk).filter(date=self.date, flat=self.flat).count() + 1 > 1:
+                raise ValidationError(_("This flat has booked cinema that day"))
+
+
+
+    def check_avail(self):
+        if not CinemaBooking.objects.filter(date=self.date).exists():
+            return False
+
+
+        
+    def bookings_number(self): # Check how many bookings has flat had within +/- 7 days
+        start_date = date.today() - timedelta(days=7)
+        end_date = date.today() + timedelta(days=7)
+        twoweeks_bookings = CinemaBooking.objects.filter(date__range=[start_date, end_date],flat=self.flat)
+        
+        oneweek_bookings = CinemaBooking.objects.filter(date__range=[date.today(), end_date],flat=self.flat)
+      
+        if not self.pk:
+            if twoweeks_bookings.count() > 3 or oneweek_bookings.count() > 1:
+                raise ValidationError(_("Max amount of bookings reached by this flat"))
+     
+        else:    
+            if twoweeks_bookings.count() > 4 or oneweek_bookings.count() > 2:
+                raise ValidationError(_("Max amount of bookings reached by this flat"))
+            if oneweek_bookings.count() == 2:
+                for booking in oneweek_bookings:
+                    if booking.pk == self.pk:
+                        return False
+                    else:
+                        pass
+                raise ValidationError(_("Editing into existing slot"))
+            if twoweeks_bookings.count() == 4:
+                for booking in twoweeks_bookings:
+                    if booking.pk == self.pk:
+                        return False
+                    else:
+                        pass
+                raise ValidationError(_("Editing into existing slot"))
+               
+            
+            
+        
+
+    # def save(self, *args, **kwargs):
+    #     self.clean()
+    #     return super().save(*args, **kwargs)
    
    
    
@@ -274,7 +366,7 @@ class CinemaBookingBlock(models.Model):
 
     def clean(self):
         if CinemaBookingBlock.objects.filter(date=self.date).exists():
-            print(self.date)
+            
             raise ValidationError(_("Block already exists"))
 
         if CinemaBooking.objects.filter(date=self.date).exists():
@@ -284,8 +376,12 @@ class CinemaBookingBlock(models.Model):
     def add_many(how_many, date):  # Adds more objects at the same time- in case of longer block
         date_used = datetime.strptime(date, '%Y-%m-%d')
         for i in range(how_many):
-            CinemaBookingBlock.objects.create(date=date_used, made_by=Concierge.objects.get(name='Bart')).save()
+            CinemaBookingBlock.objects.create(date=date_used, made_by=Concierge.objects.get(name='Bart'))
             date_used += timedelta(days=1)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return str(self.date)

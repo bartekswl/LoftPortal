@@ -99,14 +99,14 @@ class Tenant(models.Model):
 
     def clean(self):
         if not self.pk:
-            if Flat.get_tenants(self.flat)[1] >= 6:
-                print(Flat.get_tenants(self.flat)[1])
+            amount_tenants = Flat.get_tenants(self.flat)[1]
+            if amount_tenants >= 6:
                 raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
-        elif Flat.get_tenants(self.flat)[1] > 6:
+        elif amount_tenants > 6:
             raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
         else:
             if self.tracker_agent.has_changed('flat') or self.tracker_agent.has_changed('moved_out'):
-                if Flat.get_tenants(self.flat)[1] >= 6:
+                if amount_tenants >= 6:
                     raise ValidationError(_('Maximum flat occupancy is 6.'))
             
    

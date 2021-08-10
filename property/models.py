@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 
 from django.contrib import messages
+from datetime import datetime, timedelta, date
 
 from property.flat_codes import flat_codes
 from accounts.models import PortalUser
@@ -24,6 +25,10 @@ from random import randint
         # )
 
 
+def validate_date(date):
+    if date > datetime.now().date():
+        raise ValidationError("Date cannot be in the future")
+
 building_codes = (('Cassia', 'Cassia'),('Rosewood', 'Rosewood'))
 own_flat_type = (('Vonder', 'Vonder'),('Anglo', 'Anglo'), ('Private', 'Private'), ('Other', 'Other'))
 
@@ -34,6 +39,11 @@ class Flat(models.Model):
     core           = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], null=True, blank=False)
     floor          = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)], null=True, blank=False)
     flat_size      = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)], null=True, blank=False)
+    electric_meter = models.CharField(max_length=12, null=True, blank=True, unique=True)
+    last_reading_date = models.DateField(auto_now_add=False, null=True, blank=True, validators=[validate_date])
+    last_reading   = models.CharField(max_length=10, null=True, blank=True)
+    water_meter    = models.CharField(max_length=12, null=True, blank=True, unique=True)
+    heat_meter     = models.CharField(max_length=12, null=True, blank=True, unique=True)
     full_address   = models.CharField(max_length=40, null=True, blank=True)
     flat_type      = models.CharField(max_length=10, choices=own_flat_type, null=True, blank=False)
     agency         = models.CharField(max_length=20, null=True, blank=True)
@@ -176,4 +186,17 @@ class Concierge(models.Model):
     def __str__(self):
         return self.name
 
-   
+
+
+
+class Complaint(models.Model):
+
+    date        = models.DateField(auto_now_add=False, null=True, blank=False, validators=[validate_date])
+    flat        = models.ForeignKey(Flat, on_delete=models.PROTECT, related_name='complainee', null=True, blank=False)
+    placed_by   = models.ForeignKey(Flat, on_delete=models.PROTECT, related_name='complainant', null=True, blank=True)
+    description = models.TextField(max_length=200, null=True, blank=False)
+    logged_by   = models.ForeignKey(Concierge, on_delete=models.PROTECT, null=True, blank=False)
+
+
+    def __str__(self):
+        return f'{self.date} {self.flat}' 

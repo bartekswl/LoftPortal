@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Flat, Tenant, CommercialUnit, Concierge
+from .models import Flat, Tenant, CommercialUnit, Concierge, Complaint
 from django.contrib import messages
 
 
@@ -77,3 +77,4 @@ admin.site.register(Flat, FlatAdmin)
 admin.site.register(Tenant, TenantAdmin)
 admin.site.register(CommercialUnit)
 admin.site.register(Concierge, ConciergeAdmin)
+admin.site.register(Complaint)

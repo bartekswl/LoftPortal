@@ -43,10 +43,10 @@ class GymBooking(models.Model):
     def clean(self):
         if self.date > date.today() + timedelta(days=7):
             raise ValidationError(_('You can make a booking maximum 7 days in advance'))
-        check_flat = Flat.get_tenants(self.flat)[0]
         if self.time == 'xxx': # Cleaning slot chosen- not available
             raise ValidationError(_('Time slot not available- cleaning'))
         # Checking if tenant matches the flat number
+        check_flat = Flat.get_tenants(self.flat)[0]
         if not self.tenant in check_flat:    
             raise ValidationError(_('Flat number does not match tenant name.'))
         # checking for blocked/full slots

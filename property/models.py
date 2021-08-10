@@ -78,7 +78,10 @@ class Flat(models.Model):
 
 
 
-pin_generator='se'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
+def pin_generator():
+    new_pin ='se'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
+    return new_pin
+
 tenancy = (('Tenant', 'Tenant'),('Owner', 'Owner'), ('Other', 'Other'))
 
 class Tenant(models.Model):
@@ -96,7 +99,7 @@ class Tenant(models.Model):
     date_added    = models.DateField(auto_now_add=True, null=True)
     moved_out     = models.BooleanField(default=False)
     date_moved_out= models.DateField(auto_now_add=False, null=True, blank=True)
-    pin_code      = models.CharField(max_length=6, blank=True, default=pin_generator, editable=False)
+    pin_code      = models.CharField(max_length=6, default=pin_generator, editable=False)
     portal_user   = models.OneToOneField(PortalUser, related_name='tenant', on_delete=models.SET_NULL, null=True, blank=True, default=None)
     tracker_agent = FieldTracker(fields=['flat', 'moved_out'])
     

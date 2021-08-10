@@ -5,7 +5,7 @@ from property.models import Flat, Tenant
 
 
 class GymBookingAdmin(admin.ModelAdmin):
-    list_display = ('date', 'time', 'flat', 'tenant', 'pax')
+    list_display = ('date', 'time', 'flat', 'tenant', 'pax', 'date_added')
 
     # def save_model(self,*args, **kwargs):
         

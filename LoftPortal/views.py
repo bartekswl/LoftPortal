@@ -5,7 +5,7 @@ from booking.models import CinemaBookingBlock, GymBookingBlock
 
 
 
-def home(request):
+def dashboard(request):
     # current_tenant = get_object_or_404(Tenant, name='Bar')
     # Tenant.create_user(current_tenant)
     # a =  get_object_or_404(Flat, flat_number='C1')
@@ -14,7 +14,7 @@ def home(request):
     # print(b[1])
     # a = get_object_or_404(Tenant, pk=11)
     # PortalUser.objects.create_admin('Benek','gruby@op.pl')
-    CinemaBookingBlock.add_many(7, '2021-08-05')
+    #CinemaBookingBlock.add_many(7, '2021-08-05')
 
     
-    return render(request, 'home.html')
+    return render(request, 'dashboard.html')

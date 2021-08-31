@@ -64,9 +64,7 @@ class ConciergeAdmin(admin.ModelAdmin):
             else:
                 return False
 
-    def save_model(self, request, obj, form, change):
-        messages.add_message(request, messages.INFO, 'Car has been sold')
-        super(CarAdmin, self).save_model(request, obj, form, change)
+   
 
     #list_display = ('name', 'surname', 'work_pattern', 'phone_number')
 

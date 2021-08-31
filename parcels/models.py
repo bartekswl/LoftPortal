@@ -7,11 +7,21 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from random import randint
 
+from datetime import datetime, date
+
 
 
 def parcel_num_generator():
-        new_num = 'SE'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
+        #new_num = 'SE'+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))+str(randint(0,9))
+        month = str(datetime.now().date().month)
+        if len(month) == 1:
+            month = '0' + month
+        day = str(datetime.now().date().day)
+        if len(day) == 1:
+            day = '0' + day
+        new_num = 'SE'+ month + day + str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9))
         return new_num
+
 
 class Parcel(models.Model):
 

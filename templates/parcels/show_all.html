@@ -7,7 +7,104 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
-<h1>Parcel page</h1>
+<h1>Parcel log</h1>
 
+
+
+<div class="card shadow mb-4">
+    <div class="card-header py-1">
+        {% if today_parcels == None %}
+        <h6 class="m-0 font-weight-bold text-primary">{{ today_format }}<span style="float:right;"> Total in parcel room: {{ total_num }}</span></h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+           
+            <table style="display: none;" class="table table-bordered" id="dataTable" width="100%" cellspacing="0"></table>
+                <tr>No parcels received today</tr>
+                
+                {% else %}
+        <h6 class="m-0 font-weight-bold text-primary">{{ today_format }}<span style="float:right;"> Total in parcel room: {{ total_num }}</span> </h6>
+        <h6> Received today: {{ today_parcels.1 }} </h6>
+        
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+           
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    
+              <thead>
+               
+                    <tr>
+                      
+                        <th style="width: 3rem;">Time</th>
+                        <th style="width: 3rem;">Flat</th>
+                        <th style="width: 7rem;">Tenant</th>
+                        <th style="width: 2rem;">Number of parcels</th>
+                        <th style="width: 2rem;">Code</th>
+                        
+                    </tr>
+                   </thead>
+                   {% for i in today_parcels.0 %}
+                <tbody>
+                    <tr>
+                        <td>{{ i.date_arrived.time }}</td>
+                        <td>{{ i.flat_number }}</td>
+                        <td>{{ i.tenant}}</td>
+                        <td>{{ i.amount_parcels }}</td>
+                        <td>{{ i.parcel_num }}</td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+              
+
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% for parcels_by_day, num_of_parcels in parcels_zip %}
+
+
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ parcels_by_day.0.format_time }}</h6><h6> Received today: {{num_of_parcels}} </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 3rem;">Time</th>
+                        <th style="width: 3rem;">Flat</th>
+                        <th style="width: 7rem;">Tenant</th>
+                        <th style="width: 2rem;">Number of parcels</th>
+                        <th style="width: 2rem;">Code</th>
+                        
+                    </tr>
+                </thead>
+                {% for parcel in parcels_by_day %}
+                <tbody>
+                    <tr>
+                        <td>{{ parcel.date_arrived.time }}</td>
+                        <td>{{ parcel.flat_number }}</td>
+                        <td>{{ parcel.tenant}}</td>
+                        <td>{{ parcel.amount_parcels }}</td>
+                        <td>{{ parcel.parcel_num }}</td>
+                        
+                    </tr>
+                   
+                </tbody>
+              {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
 </div>
 {% endblock %}

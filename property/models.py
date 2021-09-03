@@ -111,8 +111,8 @@ class Tenant(models.Model):
         unique_together = ('name', 'surname',)
 
     def clean(self):
+        amount_tenants = Flat.get_tenants(self.flat)[1]
         if not self.pk:
-            amount_tenants = Flat.get_tenants(self.flat)[1]
             if amount_tenants >= 6:
                 raise ValidationError(_('Maximum flat occupancy is 6. Mark all former tenants as "moved out" '))
         elif amount_tenants > 6:
@@ -139,12 +139,15 @@ class Tenant(models.Model):
     def save(self, *args, **kwargs):
        
         if self.portal_user:
-             self.portal_user.name = self.name
-             self.portal_user.surname = self.surname
-             self.portal_user.phone_number = self.phone_number
-             flat_to_string = str(self.flat)
-             self.portal_user.flat = flat_to_string
-             self.portal_user.save()
+            if self.portal_user.email != self.email:
+                raise ValidationError(_('The email addresses do not match'))
+            else:
+                self.portal_user.name = self.name
+                self.portal_user.surname = self.surname
+                self.portal_user.phone_number = self.phone_number
+                flat_to_string = str(self.flat)
+                self.portal_user.flat = flat_to_string
+                self.portal_user.save()
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -3,9 +3,12 @@ from property.models import Tenant, Flat
 from accounts.models import PortalUser
 from booking.models import CinemaBookingBlock, GymBookingBlock
 
+from django.contrib.admin.views.decorators import staff_member_required
 
 
+@staff_member_required(login_url='show_all', redirect_field_name=None)
 def dashboard(request):
+    print(request.user)
     # current_tenant = get_object_or_404(Tenant, name='Bar')
     # Tenant.create_user(current_tenant)
     # a =  get_object_or_404(Flat, flat_number='C1')
@@ -18,3 +21,6 @@ def dashboard(request):
 
     
     return render(request, 'dashboard.html')
+
+
+

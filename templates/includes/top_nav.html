@@ -13,27 +13,14 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Topbar Search -->
-                    <!-- <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form> -->
                     <div>
-                        <img src="{% static 'x_left.png' %}" alt="..." width="15" height="70" style="margin-left: 12rem; opacity: 0.8;">
+                        <img src="{% static 'img/x_left.png' %}" alt="..." width="15" height="70" style="margin-left: 15vw; opacity: 0.8;">
                     </div>
                     <div>
-                        <img src="{% static 'se_black.png' %}" alt="..." width="180" height="65" style="margin-left: 2rem; opacity: 0.8;">
+                        <img src="{% static 'img/se_black.png' %}" alt="..." width="180" height="65" style="margin-left: 2vw; opacity: 0.8;">
                     </div>
                     <div>
-                        <img src="{% static 'x_right.png' %}" alt="..." width="15" height="70" style="margin-left: 2rem; opacity: 0.8;">
+                        <img src="{% static 'img/x_right.png' %}" alt="..." width="15" height="70" style="margin-left: 2vw; opacity: 0.8;">
                     </div>
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
@@ -211,6 +198,18 @@
                                 </a>
                             </div>
                         </li>
+                        <div class="topbar-divider d-none d-sm-block"></div>
+                        {% if request.user.is_authenticated %}
+                        <a href="{% url 'logout' %}" class="btn btn-primary btn-user btn-block shadowT disappear">
+                            <i class="fas fa-sign-out-alt" style="font-size: 1rem;"></i><br>
+                            Logout
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-user btn-block shadowT">
+                            <i class="fas fa-user" style="font-size: 1rem;"></i><br>
+                            Login
+                        </a>
+                        {% endif %}
 
                     </ul>
 

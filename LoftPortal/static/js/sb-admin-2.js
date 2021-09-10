@@ -34,6 +34,12 @@
     }
   });
 
+  jQuery(document).ready(function($) {
+    $(".clickable-row").click(function() {
+        window.location = $(this).data("href");
+    });
+});
+
   // Scroll to top button appear
   $(document).on('scroll', function() {
     var scrollDistance = $(this).scrollTop();

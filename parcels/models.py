@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 from random import randint
 
 from django.db.models import Sum
-
+from django.urls import reverse
 
 
 
@@ -22,7 +22,10 @@ def parcel_num_generator():
         if len(day) == 1:
             day = '0' + day
         new_num = 'SE'+ day + month + str(randint(0,9)) + str(randint(0,9)) + str(randint(0,9))
-        return new_num
+        if Parcel.objects.filter(parcel_num=new_num):
+            parcel_num_generator()
+        else:
+            return new_num
 
 
 class Parcel(models.Model):
@@ -110,10 +113,11 @@ class Parcel(models.Model):
      
         return final_list, num_of_parcels_ready
 
-            
-            
-          
 
-    
+    def get_url(self):
+        return reverse('parcel_details', args=[self.parcel_num])
+
+            
+            
     def __str__(self):
         return str(self.date_arrived)

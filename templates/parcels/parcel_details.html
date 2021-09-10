@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+<h1>Parcel {{ parcel.parcel_num}}</h1>
+
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+       
+        <h6 class="m-0 font-weight-bold text-primary">Delivered on {{ parcel.date_arrived|date:"l, jS F Y @ H:i" }}<span style="float:right;"></span></h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+           
+            <table style="display: none;" class="table table-bordered" id="dataTable" width="100%" cellspacing="0"></table>
+                <tr>No parcels received today</tr>
+
+</div>
+{% endblock %}

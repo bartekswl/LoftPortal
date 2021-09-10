@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from datetime import datetime, timedelta, date
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Parcel
@@ -29,3 +29,15 @@ def show_all(request):
         }
 
     return render(request, 'parcels/show_all.html', context)
+
+
+
+def parcel_details(request, parcel_num):
+
+    parcel = get_object_or_404(Parcel, parcel_num=parcel_num)
+
+    context = {
+        'parcel': parcel,
+    }
+
+    return render(request, 'parcels/parcel_details.html', context)

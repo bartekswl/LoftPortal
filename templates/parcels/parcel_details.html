@@ -2,24 +2,162 @@
 
 {% load static %}
 
+
 {% block content %}
+
+
 
 <!-- Begin Page Content -->
 <div class="container-fluid">
+    
+    <div class="row">
 
-<h1>Parcel {{ parcel.parcel_num}}</h1>
+        <div class="col mb-2">
+            <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: left !important;">
+                <div class="card-body" style="padding: 0.4rem;">
+                    <div class="row no-gutters align-items-center">
+    
+                        
+                            <div class="row no-gutters align-items-center">
+                               
+                                <div class="col mr-1">
+                                    
+                                    <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                                        
+                                        Delivered on:</div>
+                                    <div class="h3 mb-0 font-weight-bold text-primary" style="font-size: 1.7rem; padding-left:0.3rem">{{ parcel.date_arrived|date:"D, d/m, H:i" }}<br><span style="font-size: 1.2rem;">Received by: {{parcel.received_by}}</span></div>
+                                </div>
+                                <div class="col-auto">
+                                    
+                                    <i class="fas fa-box-open fa-2x text-primary" style="font-size: 3.3rem;padding-left:0.5rem"></i>
+                                </div>
+                
+                            </div>
+                        
+                    
+                    </div>
+                </div>
+            </div>
+            </div>
+       
+        <div class="col-5">
+            <br>
+            <h1>Delivery {{parcel.parcel_num}}</h1>
+        </div>
+    <div class="col mb-2">
+    <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: right !important;">
+        <div class="card-body" style="padding: 0.4rem;">
+            <div class="row no-gutters align-items-center">
+                {% if parcel.is_collected == True %}
+                <div class="col mr-1">
+                    
+                    <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                        
+                        Collected on:</div>
+                    <div class="h3 mb-0 font-weight-bold text-primary" style="font-size: 1.7rem; padding-left:0.3rem">{{ parcel.pickup_date|date:"D, d/m, H:i" }}<br><span style="font-size: 1.4rem;">by {{parcel.picked_up_by}}</span></div>
+                </div>
+                <div class="col-auto">
+                    
+                    <i class="fas fa-calendar-check fa-2x text-primary" style="font-size: 3.5rem; padding-right:0.5rem; color: rgb(17, 129, 23) !important"></i>
+                </div>
+                {% else %}
+                <div class="col mr-1">
+                    
+                    <div class="text-lg font-weight-bold text-primary text-uppercase mb-1" style="font-size: 1.7rem;">
+                        
+                        |Not collected|</div>
+                    <div class="h3 mb-0 font-weight-bold text-primary" style="font-size: 1.2rem;"><span style="font-size: 1.4rem;">Days since delivered:<br> {{days_in}}</span></div>
+                </div>
+                <div class="col-auto">
+                    
+                    <i class="fas fa-calendar-times fa-2x text-primary" style="font-size: 3.5rem; padding-right:0.5rem; color: rgb(199, 13, 13) !important"></i>
+                </div>
+                {% endif %}
 
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
 
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-       
-        <h6 class="m-0 font-weight-bold text-primary">Delivered on {{ parcel.date_arrived|date:"l, jS F Y @ H:i" }}<span style="float:right;"></span></h6>
+    <div class="card-header py-3 bg-gradient-light" >
+       <div class="row">
+           <div class="col">
+        <h6 class="m-0 font-weight-bold text-primary" style="padding: 0.3rem">Delivery details</h6>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-           
-            <table style="display: none;" class="table table-bordered" id="dataTable" width="100%" cellspacing="0"></table>
-                <tr>No parcels received today</tr>
+        <div class="col" style="display:inline-flex; {% if parcel.is_collected == True %} visibility:hidden; {% endif %}">
+            <i class="fas fa-people-carry fa-2x text-primary" style="font-size: 2rem; padding-right:1rem;padding-left:1.5rem;"></i> 
+            
+            <div>
+                <form action="{% url 'show_all'%}" method="POST" name="pickup_single"  style="padding-top:0.1rem;display:inline-flex;">
+                    {% csrf_token %} 
+                <input type="hidden" name="flat_number" value="{{ parcel.flat_number }}">
+                <input type="hidden" name="parcel_num" value="{{ parcel.parcel_num }}">
+                <input class="form-control" placeholder="Picked up by" name="picked_by" style="height:2.3rem;" autocomplete="off" required>
+                <select class="form-control" id="concierge" placeholder="Concierge name" name="concierge" style="height:2.3rem;" required>
+                    <option value="" disabled selected hidden>Concierge name</option>
+                    {% for i in concierge_all %}
+                
+                  <option value="{{i}}">{{i}}</option>
+                 
+                    {% endfor %}
+                </select>
+            </div>
+            
+                <button type="submit" style="background: none; border: none;" name="pickup_single">
+                <a href="#" class="btn btn-success btn-icon-split">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span class="text">Pick-up</span>
+                </a></button>
+            </form>
+            
+        </div>
+    </div>
+            </div>
+         
+        
+        
 
-</div>
+        
+ 
+    
+    
+    <div class="card-body">
+        <div style="margin-left: 2rem;">
+        <hr class="sidebar-divider" style="margin-top: 0.1rem; margin-bottom: 0.6rem;">
+        <h3 style="font-size: 1.4rem;">Date arrived: {{ parcel.date_arrived|date:"D, d/m" }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Time: {{ parcel.date_arrived|date:"H:i" }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Addressed to: {{ parcel.tenant }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Flat number: {{ parcel.flat_number }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Quantity: {{ parcel.amount_parcels }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Received by: {{ parcel.received_by }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Parcel number: {{ parcel.parcel_num }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Collection date: {{ parcel.pickup_date }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Collected by: {{ parcel.picked_up_by }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <h3 style="font-size: 1.4rem;">Released by: {{ parcel.released_by }}</h3>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+        <div class="row" style="align-items: center; padding-top:0.1rem;">
+            <div class="col-9">
+                <h3 style="font-size: 1.4rem;">Additional notes: {{ parcel.additional_notes }}</h3>
+            </div>
+            <div class="col-3" style="padding-left: 7rem;">
+                {% include 'includes/modal_add_comment.html' %}
+            </div>
+            </div>
+        <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
+    </div>
+    </div>
+
 {% endblock %}

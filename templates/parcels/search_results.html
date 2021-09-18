@@ -4,9 +4,6 @@
 
 {% block content %}
 
-{% if collected_parcels != None %}
-{% include 'includes/modal_collection.html' %}
-{% endif %}
 <!-- Begin Page Content -->
 <div class="container-fluid">
 <div class="row">
@@ -15,11 +12,10 @@
         <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: left !important;">
             <div class="card-body" style="padding: 0.4rem;">
                 <div class="row no-gutters align-items-center">
-
                     <div class="col mr-1">
                         <form action="{% url 'search_results' %}" method="GET" name="parcel_search">
                         <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
-                            Find delivery: </div>
+                            Find parcel: </div>
                             <div>
                             
                             <input class="form-control" list="parcels_by_flat" id="flat" placeholder="By flat" name="flat" maxlength="4" autocomplete="off">
@@ -52,9 +48,9 @@
         </div>
         </div>
 
-    <div class="col-2">
+    <div class="col-3">
         <br>
-        <h1>Parcel log</h1>
+        <h1>Search results</h1>
     </div>
 <div class="col mb-2">
 <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: right !important;">
@@ -62,12 +58,12 @@
         <div class="row no-gutters align-items-center">
             <div class="col mr-1">
                 <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
-                    Total in parcel room: </div>
-                <div class="h3 mb-0 font-weight-bold text-primary" style="text-align:center; font-size: 2.2rem">{{ total_num }}</div>
+                    Deliveries found: </div>
+                <div class="h3 mb-0 font-weight-bold text-primary" style="text-align:center; font-size: 2.2rem">{{ results|length }}</div>
             </div>
             <div class="col-auto">
-                <br>
-                <i class="fas fa-box-open fa-2x text-primary" style="font-size: 3rem;"></i>
+                    <br>
+                <i class="fas fa-box-open fa-2x text-primary" style="font-size: 3rem; padding-right: 1.4rem;"></i>
             </div>
         </div>
     </div>
@@ -76,18 +72,58 @@
 </div>
 
 <div class="card border-left-info shadow mb-2" >
-    <div class="card-header py-3  bg-gradient-light" >
-        {% if today_parcels == None %}
-        <h6 class="m-0 font-weight-bold text-primary">{{ today_format }}
+    <div class="card-header bg-gradient-light" >
+        {% if results|length == 0 %}
+
     </div>
     <div class="card-body">
         <div class="table-responsive">
            
             <table style="display: none;" class="table table-bordered" id="dataTable" width="100%" cellspacing="0"></table>
-                <tr>No parcels received today</tr>
-                
+        
+                <tr><span style="display:flex; justify-content:center; align-items: center; font-size: 1.5rem">No matching deliveries found!</span></tr>
+         
                 {% else %}
-        <h6 class="m-0 font-weight-bold text-primary">{{ today_format }}<span style="float:right; font-size: 1.2rem;"> Received today: {{ today_parcels.1 }}</span> </h6>
+        
+            <div>
+            
+        <div class="row">
+            <div class="col-6">
+        <h6 class="m-0 font-weight-bold text-primary" style="padding-top: 0.3rem;">Deliveries associated with: {{ flat }} {{ tenant_name }}    </h6>
+            
+    </div>
+    
+    <div class="col" style="display:inline-flex; {% if one_flat_in_results == False %} visibility:hidden; {% endif %}">
+            <i class="fas fa-people-carry fa-2x text-primary" style="font-size: 2rem; padding-right:1rem;padding-left:1.5rem;"></i> 
+            
+            <div>
+                <form action="{% url 'show_all'%}" method="POST" name="pickup_all"  style="padding-top:0.1rem;display:inline-flex;">
+                    {% csrf_token %} 
+                <input type="hidden" name="flat" value="{{ results.0.flat_number }}">
+                <input class="form-control" placeholder="Picked up by" name="picked_by" style="height:2.3rem;" autocomplete="off" required>
+                <select class="form-control" id="concierge" placeholder="Concierge name" name="concierge" style="height:2.3rem;" required>
+                    <option value="" disabled selected hidden>Concierge name</option>
+                    {% for i in concierge_all %}
+                
+                  <option value="{{i}}">{{i}}</option>
+                 
+                    {% endfor %}
+                </select>
+            </div>
+            
+                <button type="submit" style="background: none; border: none;" name="pickup_all">
+                <a href="#" class="btn btn-success btn-icon-split">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span class="text">Pick-up all</span>
+                </a></button>
+            </form>
+        </div>
+            </div>
+            </div>
+        
+        
 
         
     </div>
@@ -97,26 +133,28 @@
               <table class="table table-bordered table-hover" width="100%" cellspacing="0">
                     <thead>
                <tr>
+                <th style="width: 10%">Date</th>
                       <th style="width: 10%">Time</th>
                         <th style="width: 10%;">Flat</th>
-                        <th style="width: 50%;">Resident's name</th>
-                        <th style="width: 15%;">Number of parcels</th>
-                        <th style="width: 15%;">Code</th>
+                        <th style="width: 40%;">Resident's name</th>
+                        <th style="width: 10%;">Quantity</th>
+                        <th style="width: 10%;">Code</th>
+                        <th style="width: 10%;">Received by</th>
                         </tr>
                    </thead>
                   
-                    {% for i in today_parcels.0 %}
+                    {% for i in results %}
                 <tbody>
              
                   
                     <tr class="clickable-row" data-href="{{ i.get_url }}">
-                      
+                        <td>{{ i.date_arrived|date:"D, d/m" }}</td>
                         <td>{{ i.date_arrived|date:"H:i" }}</td>
                         <td>{{ i.flat_number }}</td>
                         <td>{{ i.tenant}}</td>
                         <td>{{ i.amount_parcels }}</td>
                         <td>{{ i.parcel_num }}</td>
-                       
+                        <td>{{ i.received_by }}</td>
                         
                     </tr>
                    
@@ -140,7 +178,7 @@
 <div class="card border-left-info shadow mb-2">
     <div class="card-header py-3  bg-gradient-light">
         <h6 class="m-0 font-weight-bold text-primary">{{ parcels_by_day.0.format_time }}
-         <span style="float:right; font-size: 1.2rem;"> Received: {{ num_of_parcels }}</span> </h6>
+         <span style="float:right; font-size: 1.2rem;"> Received today: {{ num_of_parcels }}</span> </h6>
     </div>
     <div class="card-body" style="padding: 0.4rem;">
         <div class="table">
@@ -149,7 +187,7 @@
                     <tr>
                         <th style="width: 10%;">Time</th>
                         <th style="width: 10%;">Flat</th>
-                        <th style="width: 50%;">Resident's name</th>
+                        <th style="width: 50%;">Tenant</th>
                         <th style="width: 15%;">Number of parcels</th>
                         <th style="width: 15%;">Code</th>
                         

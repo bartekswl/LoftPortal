@@ -40,7 +40,7 @@ class Parcel(models.Model):
     pickup_date      = models.DateTimeField(auto_now=False, null=True, blank=True)
     picked_up_by     = models.CharField(max_length=20, null=True, blank=True)
     released_by      = models.ForeignKey(Concierge, on_delete=models.PROTECT, null=True, blank=True, related_name='released')
-    additional_notes = models.TextField(max_length=100, blank=True)
+    additional_notes = models.TextField(max_length=100, blank=True, null=True)
 
    
 
@@ -55,7 +55,7 @@ class Parcel(models.Model):
 
 
     def get_today():
-        today_parcels = Parcel.objects.filter(date_arrived__date=datetime.now().date()).order_by('-date_arrived')
+        today_parcels = Parcel.objects.filter(date_arrived__date=datetime.now().date(), is_collected=False).order_by('-date_arrived')
         if len(today_parcels) == 0:
             return None
         else:
@@ -63,7 +63,7 @@ class Parcel(models.Model):
             return today_parcels, num_of_parcels['sum']
 
     def all_but_today():
-        all_but_today = Parcel.objects.exclude(date_arrived__date=datetime.now().date()).all().order_by('-date_arrived')
+        all_but_today = Parcel.objects.exclude(date_arrived__date=datetime.now().date()).filter(is_collected=False).order_by('-date_arrived')
         return all_but_today
 
     def format_time(self):
@@ -116,6 +116,18 @@ class Parcel(models.Model):
 
     def get_url(self):
         return reverse('parcel_details', args=[self.parcel_num])
+
+    
+    def find_autocomplete():
+        all = Parcel.objects.filter(is_collected=False)
+        list_of_flats = []
+        list_of_names = []
+        for i in all:
+            if i.flat_number not in list_of_flats:
+                list_of_flats.append(i.flat_number)
+            if i.tenant not in list_of_names:
+                list_of_names.append(i.tenant)
+        return list_of_flats, list_of_names
 
             
             

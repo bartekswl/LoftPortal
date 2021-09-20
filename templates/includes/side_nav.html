@@ -45,7 +45,7 @@
                                 <div class="bg-white py-2 collapse-inner rounded">
                                     <h6 class="collapse-header">Traffic</h6>
                                     <a class="collapse-item {% if '/parcels/' == request.path %} active {% endif %}" href="{% url 'show_all' %}">Show all</a>
-                                    <a class="collapse-item" href="register.html">New parcel</a>
+                                    <a class="collapse-item {% if '/parcels/new_parcel/' == request.path %} active {% endif %}" href="{% url 'new_parcel' %}">New parcel</a>
                                     <a class="collapse-item" href="forgot-password.html">Advanced search</a>
                                     <div class="collapse-divider"></div>
                                     <h6 class="collapse-header">Manage</h6>

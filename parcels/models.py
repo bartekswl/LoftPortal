@@ -41,13 +41,13 @@ class Parcel(models.Model):
     picked_up_by     = models.CharField(max_length=20, null=True, blank=True)
     released_by      = models.ForeignKey(Concierge, on_delete=models.PROTECT, null=True, blank=True, related_name='released')
     additional_notes = models.TextField(max_length=100, blank=True, null=True)
-
+    turnover         = models.IntegerField(blank=True, null=True)
    
 
     def clean(self):
         if not self.pk:
             naive_time = datetime.now()
-            self.date_arrived = make_aware(naive_time).strftime('%Y-%m-%d %H:%M')
+            self.date_arrived = make_aware(naive_time)
         check_flat = Flat.get_tenants(self.flat_number)[0]
         if self.tenant:
             if not self.tenant in check_flat:    
@@ -129,6 +129,17 @@ class Parcel(models.Model):
                 list_of_names.append(i.tenant)
         return list_of_flats, list_of_names
 
+
+    def tenants_autocomplete():
+        list_names = []
+        for i in Tenant.objects.filter(moved_out=False):
+            list_names.append(str(i))
+        return list_names
+
+
+    def get_turnover(self):
+        days_in = (make_aware(datetime.now())-self.date_arrived).days
+        return days_in
             
             
     def __str__(self):

@@ -4,11 +4,16 @@
 
 {% block content %}
 
+
+
 {% if collected_parcels != None %}
 {% include 'includes/modal_collection.html' %}
 {% endif %}
 <!-- Begin Page Content -->
 <div class="container-fluid">
+    {% if messages %}
+    {% include 'includes/alerts.html' %}
+    {% endif %}
 <div class="row">
 
     <div class="col mb-2">

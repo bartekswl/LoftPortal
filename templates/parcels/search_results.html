@@ -100,6 +100,7 @@
                 <form action="{% url 'show_all'%}" method="POST" name="pickup_all"  style="padding-top:0.1rem;display:inline-flex;">
                     {% csrf_token %} 
                 <input type="hidden" name="flat" value="{{ results.0.flat_number }}">
+                <input type="hidden" name="tenant" value="{{ tenant_name }}">
                 <input class="form-control" placeholder="Picked up by" name="picked_by" style="height:2.3rem;" autocomplete="off" required>
                 <select class="form-control" id="concierge" placeholder="Concierge name" name="concierge" style="height:2.3rem;" required>
                     <option value="" disabled selected hidden>Concierge name</option>
@@ -170,54 +171,5 @@
     </div>
 </div>
 
-
-{% for parcels_by_day, num_of_parcels in parcels_zip %}
-
-
-
-<div class="card border-left-info shadow mb-2">
-    <div class="card-header py-3  bg-gradient-light">
-        <h6 class="m-0 font-weight-bold text-primary">{{ parcels_by_day.0.format_time }}
-         <span style="float:right; font-size: 1.2rem;"> Received today: {{ num_of_parcels }}</span> </h6>
-    </div>
-    <div class="card-body" style="padding: 0.4rem;">
-        <div class="table">
-            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th style="width: 10%;">Time</th>
-                        <th style="width: 10%;">Flat</th>
-                        <th style="width: 50%;">Tenant</th>
-                        <th style="width: 15%;">Number of parcels</th>
-                        <th style="width: 15%;">Code</th>
-                        
-                    </tr>
-                </thead>
-
-                {% for parcel in parcels_by_day %}
-                
-               
-  
-                <tbody>
-                    <tr class="clickable-row" data-href="{{ parcel.get_url }}">
-                        <td>{{ parcel.date_arrived|date:"H:i" }}</td>
-                        <td>{{ parcel.flat_number }}</td>
-                        <td>{{ parcel.tenant}}</td>
-                        <td>{{ parcel.amount_parcels }}</td>
-                        <td>{{ parcel.parcel_num }}</td>
-                        
-                    </tr>
-                   
-                </tbody>
-        
-              {% endfor %}
-            
-
-            </table>
-        </div>
-    </div>
-</div>
-
-{% endfor %}
 </div>
 {% endblock %}

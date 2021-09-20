@@ -3,48 +3,59 @@ from datetime import datetime, timedelta, date
 from django.utils.timezone import make_aware
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Parcel
-from property.models import Concierge
+from property.models import Concierge, Flat, Tenant
 from django.db.models import Q
+from django.contrib import messages
 
 
 
 @staff_member_required(redirect_field_name=None)
 def show_all(request):
+    
    
+    picked_by = None
+    collected_parcels = None
     if 'pickup_single' in request.POST:
         flat_number = request.POST.get('flat_number')
         parcel_num = request.POST.get('parcel_num')
         concierge = Concierge.objects.get(name=request.POST.get('concierge'))
         picked_by = request.POST.get('picked_by')
         naive_time = datetime.now()
-        time_stamp = make_aware(naive_time).strftime('%Y-%m-%d %H:%M')
-        Parcel.objects.filter(flat_number__flat_number=flat_number, parcel_num=parcel_num).update(
+        time_stamp = make_aware(naive_time)
+        collected_parcels = Parcel.objects.filter(flat_number__flat_number=flat_number, parcel_num=parcel_num)
+        
+        collected_parcels.update(
             is_collected = True,
             pickup_date = time_stamp,
             picked_up_by = picked_by,
             released_by = concierge,
+            turnover = Parcel.get_turnover(collected_parcels[0])
         )
        
         
 
-    picked_by = None
-    collected_parcels = None
+    
     if 'pickup_all' in request.POST:
        
       
         flat = request.POST.get('flat')
+        tenant = request.POST.get('tenant').split()
         picked_by = request.POST.get('picked_by')
         concierge = Concierge.objects.get(name=request.POST.get('concierge'))
-        collected_parcels = Parcel.objects.filter(flat_number__flat_number__icontains=flat)
+        if len(tenant) > 0:
+            collected_parcels = Parcel.objects.filter(Q(tenant__name__icontains=tenant[0]) | Q(tenant__surname__icontains=tenant[0]), flat_number__flat_number__icontains=flat, is_collected=False).order_by('-date_arrived')
+        else:
+            collected_parcels = Parcel.objects.filter(flat_number__flat_number__icontains=flat, is_collected=False).order_by('-date_arrived')
         naive_time = datetime.now()
-        time_stamp = make_aware(naive_time).strftime('%Y-%m-%d %H:%M')
+        time_stamp = make_aware(naive_time)
    
         for i in collected_parcels:
             Parcel.objects.filter(id=i.id).update(
                 is_collected=True, 
                 released_by=concierge, 
                 pickup_date=time_stamp, 
-                picked_up_by=picked_by
+                picked_up_by=picked_by,
+                turnover = Parcel.get_turnover(i)
                 )
             
     
@@ -86,8 +97,12 @@ def show_all(request):
 @staff_member_required(redirect_field_name=None)
 def search_results(request):
 
+    results = None
+    flat = None
+    tenant_name = None
+    concierge_all = None
     if 'flat' in request.GET and 'tenant_name' in request.GET:    
-        results = None
+        
         if request.GET.get('flat') == "" and request.GET.get('tenant_name') == "":
             return redirect('show_all')
         else:
@@ -101,7 +116,9 @@ def search_results(request):
         
         elif flat == "":
             tenant_name = tenant_name.split()
-        
+
+            if len(tenant_name) > 2:
+                results = None
             if len(tenant_name) == 2:
                 results = Parcel.objects.filter(Q(tenant__name__icontains=tenant_name[0]) & Q(tenant__surname__icontains=tenant_name[1]), is_collected=False).order_by('-date_arrived')
             if len(tenant_name) == 1:
@@ -109,12 +126,14 @@ def search_results(request):
 
         else:
             tenant_name = tenant_name.split()
+            if len(tenant_name) > 2:
+                results = None
             if len(tenant_name) == 2:
                 results = Parcel.objects.filter(Q(flat_number__flat_number__icontains=flat) & Q(tenant__name__icontains=tenant_name[0]) & Q(tenant__surname__icontains=tenant_name[1]), is_collected=False).order_by('-date_arrived')
             if len(tenant_name) == 1:
                 results = Parcel.objects.filter(Q(flat_number__flat_number__icontains=flat) & Q(tenant__name__icontains=tenant_name[0]) | Q(flat_number__flat_number__icontains=flat) & Q(tenant__surname__icontains=tenant_name[0]), is_collected=False).order_by('-date_arrived')
         tenant_name = request.GET.get('tenant_name')
-        concierge_all = Concierge.objects.all()
+        concierge_all = Concierge.objects.only('name')
    
     search_lists = Parcel.find_autocomplete()
     search_list_flat = search_lists[0]
@@ -161,10 +180,11 @@ def parcel_details(request, parcel_num):
         updated_parcel = get_object_or_404(Parcel, parcel_num=num)
         updated_parcel.additional_notes = note
         updated_parcel.save()
+        messages.success(request, ' Notes for this parcel were updated.')
         
     parcel = get_object_or_404(Parcel, parcel_num=parcel_num)
-    days_in = (make_aware(datetime.now())-parcel.date_arrived).days
-    concierge_all = Concierge.objects.all()
+    days_in = Parcel.get_turnover(parcel)
+    concierge_all = Concierge.objects.only('name')
    
 
     context = {
@@ -174,6 +194,105 @@ def parcel_details(request, parcel_num):
     }
 
     return render(request, 'parcels/parcel_details.html', context)
+
+
+
+@staff_member_required(redirect_field_name=None)
+def new_parcel(request):
+   
+    flat_codes = None
+    amount_parcels_list = None
+    concierge_all = None
+    concierge = None
+    tenants_list = None
+
+    form_invalid = False
+
+    if 'new_parcels' in request.POST:
+        # Creating new Parcel objects when input is valid and tenants match the flat #
+        try:
+            added_success = None
+            for i in range(1, int(request.POST.get('amount_deliveries'))+1):
+                
+                quantity = int(request.POST.get('quantity'+str(i)))
+                concierge = Concierge.objects.get(name=request.POST.get('concierge'))
+
+                flat = request.POST.get('flat'+str(i)).replace(' ', '')
+                try:
+                    flat_number = Flat.objects.get(flat_number__icontains=flat)
+                except:
+                    messages.error(request, " Given flat number is invalid.")
+                    raise ValueError
+
+                tenant = request.POST.get('tenant_name'+str(i)).split()
+                if len(tenant) > 2:
+                    messages.error(request, " Resident's details can contain 2 words only: name and surname.")
+                    raise ValueError
+                try:
+                    if len(tenant) == 2:
+                        tenant_obj = Tenant.objects.get(Q(name__icontains=tenant[0]) & Q(surname__icontains=tenant[1]) | Q(name__icontains=tenant[1]) & Q(surname__icontains=tenant[0]))
+                    if len(tenant) == 1:
+                        tenant_obj = Tenant.objects.filter(Q(name__icontains=tenant[0]) | Q(surname__icontains=tenant[0]), flat=flat_number)
+                        if len(tenant_obj) > 1:
+                            messages.error(request, " More than 1 matching resident- please use name and surname.")
+                            raise ValueError
+                        tenant_obj = tenant_obj[0]
+                except:
+                    if not messages.get_messages(request):
+                        messages.error(request, " Resident not found- check details or use NOT FOUND")
+                        raise ValueError
+                    
+                
+                new_parcel_instance = Parcel(
+                    flat_number=flat_number, 
+                    tenant=tenant_obj, 
+                    amount_parcels=quantity,
+                    received_by= concierge,
+                    )
+                new_parcel_instance.clean()
+                new_parcel_instance.save()
+                added_success = i
+            messages.success(request, ' New parcels added to database.')
+            return redirect('show_all')
+        # Returning form with input values so data can be checked by user for mistake #
+        # Picking up list from moment of failed attempt #
+        except:
+            if added_success != None:
+                failed_attempt = added_success + 1
+            else:
+                failed_attempt = 1
+            form_invalid = True
+            amount_parcels_list =[] # Keeping the same var name to avoid changing 'for loops' in template # 
+            for i in range(failed_attempt,int(request.POST.get('amount_deliveries'))+1):
+                iteration = []
+                
+                iteration.append(request.POST.get('flat'+str(i)))
+                iteration.append(request.POST.get('tenant_name'+str(i)))
+                iteration.append(request.POST.get('quantity'+str(i)))
+                amount_parcels_list.append(iteration)
+            if not messages.get_messages(request):
+                messages.error(request, " Given details incorrect! Check if flat number matches resident's details")
+
+
+    
+    if 'amount_parcels' in request.GET:
+        amount_parcels_list = list(range(1,int(request.GET.get('amount_parcels')) + 1))
+        
+    tenants_list = Parcel.tenants_autocomplete()
+    concierge_all = Concierge.objects.only('name')
+    from property.flat_codes import flat_codes
+    
+    context = {
+        'amount_parcels_list': amount_parcels_list,
+        'concierge_all': concierge_all,
+        'flat_codes': flat_codes,
+        'tenants_list': tenants_list,
+        'concierge': concierge,
+    }
+        
+    return render(request, 'parcels/new_parcel.html', context)
+
+
 
 
 # SCRIPT FOR SEARCH ALL PARCELS- EVEN PICKED UP

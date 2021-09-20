@@ -5,5 +5,142 @@
 
 {% block content %}
 
-<h1>Yoo</h1>
+{% if amount_parcels_list == None %}
+{% include 'includes/modal_new_parcel.html' %}
+{% else %}
+
+<h1>New Delivery</h1>
+<br>
+<div class="container-fluid">
+<div class="card border-left-info shadow mb-2" >
+
+    <form action="{% url 'new_parcel' %}" method="POST" name="new_parcels">
+
+        {% csrf_token %}
+
+    <div class="card-header py-3  bg-gradient-light" >
+        <div class="row">
+            <div class="col-8">
+                 <h6 class="m-0 font-weight-bold text-primary" style="font-size: 2rem;">Amount of received deliveries: {{ amount_parcels_list|length }}</h6>
+             </div>
+             <div class="col-2">
+                <h6 class="m-0 font-weight-bold text-primary" style="font-size: 2rem; float:right;">Concierge:</h6>
+             </div>
+             <div class="col-2">
+                 {% if concierge == None %}
+                 <select class="form-control" id="concierge" placeholder="Concierge name" name="concierge" style="height:2.3rem;padding:0.2rem; padding-left:0.8rem;display:inline-flex; width:10rem; float:right;" required>
+                <option value="" disabled selected hidden>Concierge name</option>
+                {% for i in concierge_all %}
+            
+              <option value="{{i}}">{{i}}</option>
+             
+                {% endfor %}
+                {% else %}
+                <select class="form-control" id="concierge" placeholder="Concierge name" name="concierge" style="height:2.3rem;padding:0.2rem; padding-left:0.8rem;display:inline-flex; width:10rem; float:right;" required value="{{concierge}}">
+        
+                    {% for i in concierge_all %}
+                
+                  <option value="{{i}}">{{i}}</option>
+                 
+                    {% endfor %}
+                    {% endif %}
+            </select>
+        </div>
+    </div>
+        
+    </div>
+
+        <datalist id="flats">
+            {% for i in flat_codes %}
+            <option value="{{i.0}}">
+             {% endfor %}
+        </datalist>
+
+        
+        <datalist id="tenants">
+         <option value="NOT FOUND">
+            {% for i in tenants_list %}
+          <option value="{{i}}">
+            {% endfor %}
+        </datalist>
+
+        <datalist id="quantity">
+                                  
+            <option value="1" selected>
+            <option value="2">
+            <option value="3">
+            <option value="4">
+            <option value="5">
+            <option value="6">
+            <option value="7">
+            <option value="8">
+            <option value="9">
+        </datalist>
+     
+      
+  <br>
+    <div class="card-body" style="padding: 0.4rem;">
+        {% if messages %}
+                    {% include 'includes/alerts.html' %}
+                {% endif %}
+        
+       
+        {% for i in amount_parcels_list %}
+        
+        <div class="col mb-2" style="padding:0.3rem;">
+            <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 80%; margin:auto;">
+                
+                <div class="card-body" style="padding: 0.4rem;">
+                    
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-1">
+                            <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                                Delivery number {{ forloop.counter }}: </div>
+                                <div>
+                              
+                            
+                             
+                                <input class="form-control" list="flats" id="flat" placeholder="Flat number -no spaces" name="flat{{ forloop.counter }}" maxlength="4" autocomplete="off" required  value="{{i.0}}">
+                            
+                            
+                            </div>
+                            <div>
+                                <input type="text" class="form-control" list="tenants" id="tenant_name" placeholder="Resident's name and surname" name="tenant_name{{ forloop.counter }}" maxlength="46" autocomplete="off" required value="{{i.1}}">
+                               
+                            </div>
+                            <div>
+                                <input type="number" class="form-control" list="quantity" id="quantity" placeholder="Number of parcels in delivery" name="quantity{{ forloop.counter }}" min="1" max="9" autocomplete="off" required value="{{i.2}}">
+                            
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-primary" style="font-size: 3rem; padding: 1rem;padding-right:4rem;"></i>
+                        </div>
+                
+                   
+                    </div>
+                </div>
+            </div>
+            </div>
+           
+            {% endfor %}
+            
+            <div class="row">
+                <div class="col"></div>
+                <div class="col">
+            <input type="hidden" name="amount_deliveries" value="{{ amount_parcels_list|length }}">
+            <button type="submit" style="background: none; border: none;padding:1.5rem;" name="new_parcels">
+                <a class="btn btn-info btn-icon-split shadow border-left-dark " style=" height:5rem;  width: 15rem ; color:rgb(40, 29, 102);">
+                    <i class="fas fa-upload fa-2x text" style="font-size: 2.5rem; margin:auto; padding-left:2rem"></i>
+                    <span class="text" style="font-size:2.5rem;margin:auto; padding-right:2.5rem; padding-top:0.5rem">Submit</span>
+                </a></button>
+            </div>
+            <div class="col"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+
 {% endblock %}

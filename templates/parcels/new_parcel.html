@@ -5,6 +5,7 @@
 
 {% block content %}
 
+
 {% if amount_parcels_list == None %}
 {% include 'includes/modal_new_parcel.html' %}
 {% else %}
@@ -100,17 +101,18 @@
                               
                             
                              
-                                <input class="form-control" list="flats" id="flat" placeholder="Flat number -no spaces" name="flat{{ forloop.counter }}" maxlength="4" autocomplete="off" required  value="{{i.0}}">
+                                <input class="form-control" list="flats" id="flat" placeholder="Flat number; Start with 'C' for Cassia or 'R' for Rosewood" name="flat{{ forloop.counter }}" maxlength="4" autocomplete="off" required  value="{{i.0}}">
                             
                             
                             </div>
+                            
                             <div>
-                                <input type="text" class="form-control" list="tenants" id="tenant_name" placeholder="Resident's name and surname" name="tenant_name{{ forloop.counter }}" maxlength="46" autocomplete="off" required value="{{i.1}}">
+                                <input type="text" class="form-control" list="tenants" id="tenant_name" placeholder="Resident's name and surname; Choose 'NOT FOUND' if tenant not registered under given address" name="tenant_name{{ forloop.counter }}" maxlength="46" autocomplete="off" required value="{{i.1}}">
                                
                             </div>
                             <div>
                                 <input type="number" class="form-control" list="quantity" id="quantity" placeholder="Number of parcels in delivery" name="quantity{{ forloop.counter }}" min="1" max="9" autocomplete="off" required value="{{i.2}}">
-                            
+                               
                             </div>
                         </div>
                         <div class="col-auto">

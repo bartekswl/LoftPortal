@@ -1,10 +1,13 @@
 from django.shortcuts import render, get_object_or_404
+
 from property.models import Tenant, Flat
 from accounts.models import PortalUser
 from parcels.models import Parcel
 from booking.models import CinemaBookingBlock, GymBookingBlock
 
 from django.contrib.admin.views.decorators import staff_member_required
+
+
 
 
 @staff_member_required(login_url='show_all', redirect_field_name=None)
@@ -21,8 +24,7 @@ def dashboard(request):
     #CinemaBookingBlock.add_many(7, '2021-08-05')
     # Parcel.objects.filter().update(is_collected=False)
     
-    for i in range(3,10):
-        print(i)
+
     return render(request, 'dashboard.html')
 
 

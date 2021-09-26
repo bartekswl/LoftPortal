@@ -44,9 +44,9 @@
                             <div id="collapsePages1" class="collapse {% if '/parcels/' in request.path %} show {% endif %}" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                                 <div class="bg-white py-2 collapse-inner rounded">
                                     <h6 class="collapse-header">Traffic</h6>
-                                    <a class="collapse-item {% if '/parcels/' == request.path %} active {% endif %}" href="{% url 'show_all' %}">Show all</a>
+                                    <a class="collapse-item {% if '/parcels/' == request.path or '/parcels/search_results/' in request.path %} active {% endif %}" href="{% url 'show_all' %}">Show all</a>
                                     <a class="collapse-item {% if '/parcels/new_parcel/' == request.path %} active {% endif %}" href="{% url 'new_parcel' %}">New parcel</a>
-                                    <a class="collapse-item" href="forgot-password.html">Advanced search</a>
+                                    <a class="collapse-item  {% if '/parcels/advanced_search/' == request.path %} active {% endif %}" href="{% url 'advanced_search' %}">Advanced search</a>
                                     <div class="collapse-divider"></div>
                                     <h6 class="collapse-header">Manage</h6>
                                     <a class="collapse-item" href="404.html">Audit</a>
@@ -61,16 +61,16 @@
             </div>
 
             <!-- Nav Item - Pages Collapse Menu Gym -->
-            <li class="nav-item">
+            <li class="nav-item {% if '/booking/gym/' in request.path %} active {% endif %}">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
                     aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-weight-hanging"></i>
+                    <i class="fas fa-fw fa-dumbbell"></i>
                     <span>Gym</span>
                 </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div id="collapseTwo" class="collapse  {% if '/booking/gym/' in request.path %} show {% endif %}" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Manage</h6>
-                        <a class="collapse-item" href="cards.html">View all</a>
+                        <a class="collapse-item {% if '/booking/gym/' == request.path %} active {% endif %}" href="{% url 'view_all_gym' %}">View all</a>
                         <a class="collapse-item" href="buttons.html">New booking</a>
                         <a class="collapse-item" href="cards.html">Gym stats</a>
                     </div>

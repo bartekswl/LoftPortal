@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+<div class="row">
+
+    <div class="col mb-2">
+        <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: left !important;">
+            <div class="card-body" style="padding: 0.4rem;">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-1">
+                    
+                        <a href="{% url 'advanced_search' %}" style="text-decoration:none;"><div class="text-lg font-weight-bold text-primary text-uppercase mb-1" style="font-size: 2rem; padding-top: 0.7rem">
+                          Come back to new search</div></a>
+                     
+                    </div>
+                    <div class="col-auto">
+                        <a href="{% url 'advanced_search' %}">
+                        <i class="fas fa-undo-alt fa-2x text-primary clickable-row" style="font-size: 3rem; padding: 1rem;"></i></a>
+                    </div>
+               
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div class="col-3">
+        <br>
+        <h1>Advanced search results</h1>
+    </div>
+<div class="col mb-2">
+<div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: right !important;">
+    <div class="card-body" style="padding: 0.4rem;">
+        <div class="row no-gutters align-items-center">
+            <div class="col mr-1">
+                
+                <div class="text-lg font-weight-bold text-primary text-uppercase mb-1" style="font-size: 1.5rem;padding-left:0.3rem; padding-top:0.7rem">
+                    Deliveries found: </div>
+                <div class="h3 mb-0 font-weight-bold text-primary" style="text-align:center; font-size: 2.2rem">{{ results|length }}</div>
+            </div>
+            <div class="col-auto">
+                    <br>
+                <i class="fas fa-box-open fa-2x text-primary" style="font-size: 3rem; padding-right: 1.1rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="card border-left-info shadow mb-2" >
+    <div class="card-header bg-gradient-light" >
+        {% if results|length == 0 %}
+
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+           
+            <table style="display: none;" class="table table-bordered" id="dataTable" width="100%" cellspacing="0"></table>
+        
+                <tr><span style="display:flex; justify-content:center; align-items: center; font-size: 1.5rem">No matching deliveries found!</span></tr>
+         
+                {% else %}
+        
+            <div>
+            
+        <div class="row">
+            <div class="col-4">
+                <h6 class="m-0 font-weight-bold text-primary" style="padding-top: 0.3rem;">Found entries:</h6>
+            </div>
+            <div class="col-4"></div>
+            <div class="col-4">
+                <h6 class="m-0 font-weight-bold text-primary" style="padding-top: 0.3rem;">Total quantity of parcels: {{total_quantity}}</h6>
+            </div>
+    
+  
+            </div>
+            </div>
+        
+        
+
+        
+    </div>
+    <div class="card-body" style="padding: 0.4rem;">
+        <div class="table">
+          
+              <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead>
+               <tr>
+                <th style="width: 10%">Date</th>
+                      <th style="width: 10%">Time</th>
+                        <th style="width: 10%;">Flat</th>
+                        <th style="width: 30%;">Resident's name</th>
+                        <th style="width: 10%;">Quantity</th>
+                        <th style="width: 10%;">Code</th>
+                        <th style="width: 10%;">Received by</th>
+                        <th style="width: 10%;">Collected</th>
+                        
+                        </tr>
+                   </thead>
+                  
+                    {% for i in results %}
+                <tbody>
+             
+                  
+                    <tr class="clickable-row" data-href="{{ i.get_url }}">
+                        <td>{{ i.date_arrived|date:"D, d/m" }}</td>
+                        <td>{{ i.date_arrived|date:"H:i" }}</td>
+                        <td>{{ i.flat_number }}</td>
+                        <td>{{ i.tenant}}</td>
+                        <td>{{ i.amount_parcels }}</td>
+                        <td>{{ i.parcel_num }}</td>
+                        <td>{{ i.received_by }}</td>
+                        <td>
+                            {% if i.is_collected == True %}
+                            <i class="fas fa-check-circle fa-2x" style="font-size: 1.5rem; margin-left:2rem; color:rgb(0, 143, 59)"></i>
+                            {% else %}
+                            <i class="fas fa-times-circle fa-2x" style="font-size: 1.5rem; margin-left:2rem; color:rgb(221, 47, 47)"></i>
+                            {% endif %}
+                        </td>
+                        
+                    </tr>
+                   
+                      {% endfor %}
+                </tbody>
+               
+                
+              
+
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

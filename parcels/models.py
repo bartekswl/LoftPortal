@@ -51,7 +51,7 @@ class Parcel(models.Model):
         check_flat = Flat.get_tenants(self.flat_number)[0]
         if self.tenant:
             if not self.tenant in check_flat:    
-                raise ValidationError(_('Flat number does not match tenant name.'))
+                raise ValidationError({'bark_volume': 'Must be louder!'})
 
 
     def get_today():

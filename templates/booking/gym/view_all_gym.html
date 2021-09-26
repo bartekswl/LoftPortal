@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+
+.bradious {
+    overflow:visible;
+    border-collapse: separate;
+    border-radius: 1rem !important;
+    perspective: 0.1rem;
+    
+
+
+}
+.zoom {
+    
+    
+    transition: transform .2s;
+  
+    
+    
+  }
+  
+  .zoom:hover {
+    
+    -ms-transform: scale(1.2); /* IE 9 */
+    -webkit-transform: scale(1.2); /* Safari 3-8 */
+    transform: scale(1.2); 
+  }
+  </style>
+
+<div class="container-fluid">
+
+    <div class="row" style="margin: auto !important;">
+
+        <div class="col mb-2">
+            <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: left !important;">
+                <div class="card-body" style="padding: 0.4rem;">
+                    <div class="row no-gutters align-items-center">
+    
+                        <div class="col mr-1">
+                            <form action="{% url 'search_results' %}" method="GET" name="parcel_search">
+                            <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                                Find delivery: </div>
+                                <div>
+                                
+                                <input class="form-control" list="parcels_by_flat" id="flat" placeholder="By flat" name="flat" maxlength="4" autocomplete="off">
+                                {% for i in search_list_flat %}
+                                <datalist id="parcels_by_flat">
+                                  
+                                  <option value="{{i}}">
+                                 
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div>
+                                <input class="form-control" list="parcels_by_name" id="tenant_name" placeholder="By name" name="tenant_name" maxlength="25" autocomplete="off">
+                                {% for i in search_list_name %}
+                                <datalist id="parcels_by_name">
+                                  
+                                  <option value="{{i}}">
+                                 
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" style="background: none; border: none;">
+                            <i class="fas fa-search fa-2x text-primary clickable-row" style="font-size: 3rem; padding: 1rem;"></i></button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            </div>
+    
+        <div class="col-2">
+            <br>
+            <h1>Gym bookings</h1>
+        </div>
+    <div class="col mb-2">
+    <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 18rem; float: right !important;">
+        <div class="card-body" style="padding: 0.4rem;">
+            <div class="row no-gutters align-items-center">
+                <div class="col mr-1">
+                    <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                        Total in parcel room: </div>
+                    <div class="h3 mb-0 font-weight-bold text-primary" style="text-align:center; font-size: 2.2rem">{{ total_num }}</div>
+                </div>
+                <div class="col-auto">
+                    <br>
+                    <i class="fas fa-box-open fa-2x text-primary" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+   
+
+
+    <div class="row" style="margin:auto;">
+
+        {% for day_booking, date in elements_zip %}
+ 
+        <div class="col-sm-2" style="padding-left:0.2rem; padding-right:0.2rem;">
+           
+            <div class="card border-left-info shadow mb-2">
+                <div class="card-header py-3  bg-gradient-light" >
+                    
+                  
+          
+                    <h6 class="m-0 font-weight-bold text-primary" style="text-align: center; font-size:1.6rem; word-wrap:normal">{{date|date:"j/m"}}<br>{{date|date:"l"}}</h6>
+            
+                    
+                </div>
+                <div class="card-body" style="padding: 0.4rem;line-height:20rem;">
+                    <div class="table bradious">
+                      
+                          <table class="table table-bordered table-hover bradious" style="border-radius: 10px;" width="100%" cellspacing="0">
+                                
+                                
+                            <tbody>
+                         
+                              {% for hour_slot, bookings in day_booking.1.items %}
+
+                              {% if hour_slot != 10 %}
+
+                              {% if bookings != None %}
+                                {% if bookings.0.hourly_counter <= 3 %}
+                                    <tr class="clickable-row zoom bg-gradient-success bradious" data-href="{{ i.get_url }}" style="line-height: 2rem;">
+                                {% elif bookings.0.hourly_counter > 3 and bookings.0.hourly_counter < 6 %}
+                                    <tr class="clickable-row zoom bg-gradient-warning bradious" data-href="{{ i.get_url }}" style="line-height: 2rem;">
+                                {% elif bookings.0.hourly_counter >= 6 %}
+                                    <tr class="clickable-row zoom bg-gradient-danger bradious" data-href="{{ i.get_url }}" style="line-height: 2rem;">
+                                {% endif %}
+                                {% else %}
+                                    <tr class="clickable-row zoom bg-gradient-success bradious" data-href="{{ i.get_url }}" style="line-height: 2rem;">
+                               {% endif %}
+                                        
+                                  <td>
+                                      <div class="row bradious">
+                                    <div class="col bradious">
+                                      {{hour_slot}}:00 
+                                    </div>
+                                    <div class="col">
+                                        <div class="row text-xs" style="line-height: 1rem;"></div>
+                                        <div class="row text-xs" style="line-height: 1rem;">{{bookings.0.hourly_counter}}</div>
+                                    </div>
+                                </div>
+                                   </td>
+                               {% else %}
+                               <tr class="bg-gradient-secondary " style="line-height: 2rem !important;">
+                                <td>
+                                    <div class="row bradious">
+                                  <div class="col text-xs">
+                                    <h6 class="text-xs" style="text-align: center;">Cleaning- no bookings</h6>
+                                  </div>
+                                  
+                              </div>
+                                 </td>
+                                </tr>
+                                {% endif %}
+                              
+                                
+                               {% endfor %}
+                                
+                            </tbody>
+                           
+                            
+                          
+            
+                        </table>
+                        
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        {% endfor %}
+      
+        </div>
+      
+  
+
+    </div>
+</div>
+{% endblock %}

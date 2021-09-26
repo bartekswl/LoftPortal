@@ -38,7 +38,11 @@ class GymBooking(models.Model):
     
  
         
-  
+    def hourly_counter(self):
+        from django.db.models import Sum
+        bookings = GymBooking.objects.filter(date=self.date, time=self.time)
+        num_of_pax = bookings.aggregate(Sum('pax'))['pax__sum']
+        return num_of_pax
     
     def clean(self):
         if self.date > date.today() + timedelta(days=7):

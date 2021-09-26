@@ -864,7 +864,7 @@ pre code {
   }
   .col-sm-2 {
     flex: 0 0 16.66667%;
-    max-width: 16.66667%;
+    max-width: 14.1%;
   }
   .col-sm-3 {
     flex: 0 0 25%;
@@ -1540,7 +1540,7 @@ pre code {
 }
 
 .table-hover tbody tr:hover {
-  color: #858796;
+  color: #c8f2f5;
   background-color: rgba(0, 0, 0, 0.075);
 }
 
@@ -9489,6 +9489,7 @@ button.bg-dark:focus {
 
 .clickable-row {
   cursor: pointer;
+  border-radius: 1rem !important;
 }
 
 .stretched-link::after {

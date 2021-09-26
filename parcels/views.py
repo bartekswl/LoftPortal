@@ -9,9 +9,21 @@ from django.contrib import messages
 
 
 
-@staff_member_required(redirect_field_name=None)
+
+
+@staff_member_required(login_url ='login')
 def show_all(request):
+
     
+    if 'parcel_del_btn' in request.POST:
+        obj = Parcel.objects.filter(parcel_num=request.POST.get('parcel_del'))
+        obj_age = make_aware(datetime.now()) - obj[0].date_arrived
+        if obj_age.days < 32:
+            messages.error(request, " You can't remove records for at least 1 month from the date of creation.")
+        else:
+            obj.delete()
+            messages.success(request, ' Delivery removed from database.')
+
    
     picked_by = None
     collected_parcels = None
@@ -71,6 +83,7 @@ def show_all(request):
         total_num = today_parcels[1] + sum(num_parcel_by_day)
     else:
         total_num = sum(num_parcel_by_day)
+
 
     search_lists = Parcel.find_autocomplete()
     search_list_flat = search_lists[0]
@@ -139,6 +152,7 @@ def search_results(request):
     search_list_flat = search_lists[0]
     search_list_name = search_lists[1]
   
+    # Checks if there is one flat appearing in results; if yes= collect all parcels button enabled #
     check_results = []
     if results != None:
         list_value = None
@@ -174,9 +188,12 @@ def search_results(request):
 @staff_member_required(redirect_field_name=None)
 def parcel_details(request, parcel_num):
 
-    if request.method == "POST":
+
+    if 'edit_notes_btn' in request.POST:
         note = request.POST.get('edit_notes')
+        print(note)
         num = request.POST.get('num')
+        print(num)
         updated_parcel = get_object_or_404(Parcel, parcel_num=num)
         updated_parcel.additional_notes = note
         updated_parcel.save()
@@ -224,29 +241,33 @@ def new_parcel(request):
                     messages.error(request, " Given flat number is invalid.")
                     raise ValueError
 
-                tenant = request.POST.get('tenant_name'+str(i)).split()
-                if len(tenant) > 2:
-                    messages.error(request, " Resident's details can contain 2 words only: name and surname.")
-                    raise ValueError
-                try:
-                    if len(tenant) == 2:
-                        tenant_obj = Tenant.objects.get(Q(name__icontains=tenant[0]) & Q(surname__icontains=tenant[1]) | Q(name__icontains=tenant[1]) & Q(surname__icontains=tenant[0]))
-                    if len(tenant) == 1:
-                        tenant_obj = Tenant.objects.filter(Q(name__icontains=tenant[0]) | Q(surname__icontains=tenant[0]), flat=flat_number)
-                        if len(tenant_obj) > 1:
-                            messages.error(request, " More than 1 matching resident- please use name and surname.")
-                            raise ValueError
-                        tenant_obj = tenant_obj[0]
-                except:
-                    if not messages.get_messages(request):
-                        messages.error(request, " Resident not found- check details or use NOT FOUND")
+                tenant = request.POST.get('tenant_name'+str(i))
+                if 'not'.casefold() and 'found'.casefold() in tenant.casefold():
+                    tenant_obj = None
+                else:
+                    tenant = tenant.split()
+                    if len(tenant) > 2:
+                        messages.error(request, " Resident's details can contain 2 words only: name and surname.")
                         raise ValueError
+                    try:
+                        if len(tenant) == 2:
+                            tenant_obj = Tenant.objects.get(Q(name__icontains=tenant[0]) & Q(surname__icontains=tenant[1]) | Q(name__icontains=tenant[1]) & Q(surname__icontains=tenant[0]))
+                        if len(tenant) == 1:
+                            tenant_obj = Tenant.objects.filter(Q(name__icontains=tenant[0]) | Q(surname__icontains=tenant[0]), flat=flat_number)
+                            if len(tenant_obj) > 1:
+                                messages.error(request, " More than 1 matching resident- please use name and surname.")
+                                raise ValueError
+                            tenant_obj = tenant_obj[0]
+                    except:
+                        if not messages.get_messages(request):
+                            messages.error(request, " Resident and flat match not found- check details or use 'NOT FOUND'")
+                            raise ValueError
                     
                 
                 new_parcel_instance = Parcel(
                     flat_number=flat_number, 
                     tenant=tenant_obj, 
-                    amount_parcels=quantity,
+                    amount_parcels=quantity,                       ### Add email module ###
                     received_by= concierge,
                     )
                 new_parcel_instance.clean()
@@ -271,7 +292,7 @@ def new_parcel(request):
                 iteration.append(request.POST.get('quantity'+str(i)))
                 amount_parcels_list.append(iteration)
             if not messages.get_messages(request):
-                messages.error(request, " Given details incorrect! Check if flat number matches resident's details")
+                messages.error(request, " Given details incorrect! Check if flat number matches resident's details; if resident name incorrect use 'NOT FOUND'")
 
 
     
@@ -292,6 +313,92 @@ def new_parcel(request):
         
     return render(request, 'parcels/new_parcel.html', context)
 
+
+
+@staff_member_required(redirect_field_name=None)
+def advanced_search(request):
+
+    latest_parcel = Parcel.objects.latest('-date_arrived').date_arrived
+    from property.flat_codes import flat_codes
+
+    context = {
+        'flat_codes': flat_codes,
+        'latest_parcel': latest_parcel,
+    }
+
+    return render(request, 'parcels/advanced_search.html', context)
+
+
+
+
+@staff_member_required(redirect_field_name=None)
+def adv_search_results(request):
+    
+    results = None
+    if 'adv_search_btn' in request.POST:
+        try:
+            delivery_status = request.POST.get('delivery_status')
+            
+            flat = request.POST.get('flat').replace(' ', '')
+            if not Flat.objects.filter(flat_number__icontains=flat).exists():
+                messages.error(request, " Flat number incorrect")
+                raise ValueError
+
+            tenant = request.POST.get('tenant_name').split() 
+            if len(tenant) > 2:
+                messages.error(request, " Resident's details can contain 2 words only: name and/or surname.")
+                raise ValueError
+
+            parcel_num = request.POST.get('parcel_num')
+            if parcel_num is not "":
+                if not parcel_num.casefold().startswith('se'.casefold()):
+                    messages.error(request, " Parcel ID number incorrect")
+                    raise ValueError
+
+            date_arrived = request.POST.get('date_arrived')
+            date_collected = request.POST.get('date_collected')
+
+            if delivery_status == 'all':
+                results = Parcel.objects.all().order_by('-date_arrived')
+            elif delivery_status == 'collected':
+                results = Parcel.objects.filter(is_collected=True).order_by('-date_arrived')
+            elif delivery_status == 'not_collected':
+                results = Parcel.objects.filter(is_collected=False).order_by('-date_arrived')
+            
+            if flat is not '':
+                results = results.filter(flat_number__flat_number__icontains=flat)  
+        
+            if tenant is not []:
+                if len(tenant) == 2:
+                    results = results.filter(Q(tenant__name__icontains=tenant[0]) & Q(tenant__surname__icontains=tenant[1]) | Q(tenant__name__icontains=tenant[1]) & Q(tenant__surname__icontains=tenant[0]))
+                if len(tenant) == 1:
+                    results = results.filter(Q(tenant__name__icontains=tenant[0]) | Q(tenant__surname__icontains=tenant[0]))
+            
+            if parcel_num is not '':
+                results = results.filter(parcel_num=parcel_num)
+
+            if date_arrived is not None:
+                results = results.filter(date_arrived__date=date_arrived)
+
+            if date_collected is not None:
+                results = results.filter(pickup_date__date=date_collected)
+
+            from django.db.models import Sum
+            total_quantity = results.aggregate(Sum('amount_parcels'))['amount_parcels__sum']
+            
+      
+        except:            
+            if not messages.get_messages(request):
+                messages.error(request, " Your query was invalid- try again.")
+            return redirect('advanced_search')
+            
+
+    context = {
+        'results': results,
+        'total_quantity': total_quantity,
+    }
+
+    return render(request, 'parcels/adv_search_results.html', context)
 
 
 

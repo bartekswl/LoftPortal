@@ -6,7 +6,6 @@
 {% block content %}
 
 
-
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
@@ -86,12 +85,16 @@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 bg-gradient-light" >
+        <div class="row" style="height:1rem {% if parcel.is_collected != True  %} visibility: hidden; {%endif%}"></div>
        <div class="row">
            <div class="col-6">
-        <h6 class="m-0 font-weight-bold text-primary" style="padding: 0.3rem">Delivery details</h6>
+        <h6 class="m-0 font-weight-bold text-primary" style="padding: 0.3rem;">Delivery details</h6>
     </div>
-        <div class="col" style="display:inline-flex; {% if parcel.is_collected == True %} visibility:hidden; {% endif %}">
-            <i class="fas fa-people-carry fa-2x text-primary" style="font-size: 2rem; padding-right:1rem;padding-left:1.5rem;"></i> 
+
+        {% if parcel.is_collected == False  %}
+
+        <div class="col" style="display:inline-flex;">
+            <i class="fas fa-people-carry fa-2x text-primary" style="font-size: 2rem; padding-right:1rem;padding-left:1.5rem"></i> 
             
             <div>
                 <form action="{% url 'show_all'%}" method="POST" name="pickup_single"  style="padding-top:0.1rem;display:inline-flex;">
@@ -119,6 +122,44 @@
             </form>
             
         </div>
+        {% else %}
+        <div class="col-3"></div>
+        <div class="col" style="display:inline-flex; float:right">
+          
+            <i class="fas fa-trash-alt fa-2x text-primary" style="font-size: 2rem; padding-right:1rem;padding-left:1.5rem;"></i> 
+            
+            <div>
+                <form action="{% url 'show_all' %}" method="POST" name="parcel_del" style="padding-top:0.1rem;display:inline-flex;">
+                    {% csrf_token %} 
+                    
+                <input type="hidden" name="parcel_del" value="{{ parcel.parcel_num }}">
+            
+            </div>
+            
+                <button onclick="myFunction()" type="submit" name="parcel_del_btn" style="background: none; border: none;" >
+                <a href="#" class="btn btn-danger btn-icon-split" style=" width:8.8rem"> 
+                    <span class="icon text-white-50">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span class="text">Delete record</span>
+                </a></button>
+            
+            </div>
+        </form>
+
+
+
+
+       
+        
+        <div class="col-5"></div>
+        <div class="col-4"></div>
+        <div class="col-3">
+        <h6 class="text-xs" style="text-align:right">Only records older than 1 month</h6>
+  
+    </div>
+        {% endif %}
+
     </div>
             </div>
          
@@ -163,5 +204,19 @@
         <hr class="sidebar-divider" style="margin-top: 0.2rem; margin-bottom: 0.4rem;">
     </div>
     </div>
+
+    <script>
+        function myFunction() {
+        
+          var r = confirm("Warning! Database entry will be permanently removed! Click OK to continue.");
+          if (r == true) {
+            
+          } else {
+            event.preventDefault();
+          }
+        
+        }
+        </script>
+    
 
 {% endblock %}

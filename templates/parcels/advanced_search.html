@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block content %}
+
+
+<h1>Advanced search</h1>
+
+<div class="container-fluid">
+    <div class="card border-left-info shadow mb-2" >
+        <div class="card-header py-3  bg-gradient-light" >
+            <div class="row">
+                <div class="col-8">
+                     <h6 class="m-0 font-weight-bold text-primary" style="font-size: 2rem;">Specify search criteria:</h6>
+                 </div>
+
+            </div>
+            
+        </div>
+
+        <div class="card-body" style="padding: 0.4rem;">
+
+            {% if messages %}
+                        {% include 'includes/alerts.html' %}
+                    {% endif %}
+
+        <datalist id="flats">
+            {% for i in flat_codes %}
+            <option value="{{i.0}}">
+                {% endfor %}
+        </datalist>
+
+           
+        <form action="{% url 'adv_search_results' %}" method="POST" name="adv_search">
+            {% csrf_token %}
+            <div class="col mb-2" style="padding:0.3rem;">
+                <div class="card border-left-info shadow h-100 py-0 mb-0 bg-gradient-light" style="width: 80%; margin:auto;">
+                    
+                    <div class="card-body" style="padding: 0.4rem;">
+
+                       
+
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-1">
+                                <div class="text-lg font-weight-bold text-primary text-uppercase mb-1">
+                                    Delivery status: &nbsp
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" id="optionB" type="radio" name="delivery_status" value="not_collected" onclick="myFunction()">
+                                        <label class="form-check-label" for="optionB">Uncollected only</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" id="optionA" type="radio" name="delivery_status" value="collected" onclick="myFunctionA()" required>
+                                        <label class="form-check-label" for="optionA">Collected only</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" id="optionC" type="radio" name="delivery_status" value="all" onclick="myFunctionA()">
+                                        <label class="form-check-label" for="optionC">All</label>
+                                    </div>
+                                </div>
+                                <br>
+
+                                    <div>
+                                  
+                
+                                 
+                                    <input class="form-control" list="flats" id="flat" placeholder="Flat number" name="flat" maxlength="4" autocomplete="off">
+                                
+                                
+                                </div>
+                                <br>
+                                <div>
+                                    <input type="text" class="form-control" id="tenant_name" placeholder="Resident's name and/or surname; Max 2 words" name="tenant_name" maxlength="46" autocomplete="off">
+                                   
+                                </div>
+                                <br>
+                                <div>
+                                    <input class="form-control" id="parcel_num" placeholder="Parcel ID number; starts with 'SE'" name="parcel_num" autocomplete="off" maxlength="9">
+                                   
+                                </div>
+                                <br>
+                                <div style="display:inline-flex;">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" id="date_arr_check" type="checkbox" onclick ="myFunction1()">
+                                    </div>
+                                    <label for="date_arrived" style="margin-top:0.5rem; margin-left:0.5rem">Date arrived: &nbsp&nbsp&nbsp&nbsp&nbsp</label>
+                                    <input type="date" class="form-control" id="date_arr"  name="date_arrived" min="{{latest_parcel|date:'Y-m-d' }}" max="{% now 'Y-m-d' %}" value="{% now 'Y-m-d' %}" style="width: 10rem;margin:auto;overflow: hidden;" disabled>
+                                    
+                                </div>
+                                <br>
+                                <div style="display:inline-flex;">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" id="date_col_check" type="checkbox" onclick="myFunction2()">
+                                      
+                                    </div>
+                                    <label for="date_collected" style="margin-top:0.5rem; margin-left:0.5rem">Date collected: &nbsp</label>
+                                    <input type="date" class="form-control" id="date_col" name="date_collected" min="{{latest_parcel|date:'Y-m-d' }}" max="{% now 'Y-m-d' %}" value="{% now 'Y-m-d' %}" style="width: 10rem;margin:auto;overflow: hidden;" disabled> 
+                                    
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-server fa-2x text-primary" style="font-size: 3rem; padding: 1rem;padding-right:4rem;"></i>
+                            </div>
+                    
+                       
+                        </div>
+                    </div>
+                </div>
+                </div>
+               
+          
+                
+                <div class="row">
+                    <div class="col"></div>
+                    <div class="col">
+             
+                <button type="submit" name="adv_search_btn" style="background: none; border: none;padding:1.5rem;">
+                    <a class="btn btn-info btn-icon-split shadow border-left-dark " style=" height:5rem;  width: 15rem ; color:rgb(40, 29, 102);">
+                        <i class="fas fa-upload fa-2x text" style="font-size: 2.5rem; margin:auto; padding-left:2rem"></i>
+                        <span class="text" style="font-size:2.5rem;margin:auto; padding-right:2.5rem; padding-top:0.5rem">Submit</span>
+                    </a></button>
+                </div>
+                <div class="col"></div>
+                </div>
+            
+            </form>
+
+        </div>
+
+
+    
+    </div>
+</div>
+<script>
+    function myFunction() {
+    
+    document.getElementById("date_col").disabled = true;
+    document.getElementById("date_col_check").disabled = true;
+    document.getElementById("date_arr_check").checked = false;
+    document.getElementById("date_arr").disabled = true;
+    }
+
+    function myFunctionA() {
+    
+        document.getElementById("date_col_check").checked = false;
+        document.getElementById("date_arr_check").checked = false;
+        document.getElementById("date_col_check").removeAttribute("disabled");
+        document.getElementById("date_arr").disabled = true;
+        document.getElementById("date_col").disabled = true;
+    }
+
+ 
+
+    function myFunction1() {
+        var checkBox = document.getElementById("date_arr_check");
+        var text = document.getElementById("date_arr");
+        if (checkBox.checked == true){
+            text.removeAttribute("disabled");
+        } else {
+           text.disabled = true;
+        }
+      }
+
+      function myFunction2() {
+        var checkBox = document.getElementById("date_col_check");
+        var text = document.getElementById("date_col");
+        if (checkBox.checked == true){
+            text.removeAttribute("disabled");
+        } else {
+           text.disabled = true;
+        }
+      }
+ </script>
+
+
+{% endblock %}
